@@ -157,7 +157,9 @@ def test_real_export_audio_timing_and_graphics(client,tmp_path):
     with source.open('rb') as f:r=client.post(f"/api/v1/projects/{p['id']}/video",files={'file':('clip.mp4',f,'video/mp4')})
     assert r.status_code==200,r.text
     p=r.json()['project'];assert p['video']['has_audio']
-    s=Shot(hole=1,number=7,start=.5,end=1.5)
+    for i,score in enumerate((4,3,8,8)):
+        p['round']['holes'][i].update(par=4,score=score)
+    s=Shot(hole=3,number=7,start=.5,end=1.5)
     o=Overlay(shot_id=s.id,start=.5,end=1.5,style=Style(background="#122d24",color="#f4f8e8",accent="#b6d87d",opacity=.7,overlay_opacity=.6))
     card=Overlay(type='full',start=.5,end=1.5,style=Style(x=.04,y=.04,width=.50,height=.56,background='#f5f1e8',color='#20312d',accent='#166b59',overlay_opacity=.8))
     p['shots']=[s.model_dump()];p['overlays']=[o.model_dump()]

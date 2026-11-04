@@ -126,14 +126,27 @@ def trash_cleanup_status():
     return {'pending':purge.pending()}
 
 
-@app.post('/api/v1/projects-trash/empty')
-def empty_trash(body: EmptyTrash):
+class SelectedTrash(EmptyTrash):
+    projects: list[TrashTarget] = Field(min_length=1,max_length=10000)
+
+
+def _purge_trash(body: EmptyTrash, *, selected_only: bool = False):
     if not body.confirm_permanent_delete:
         raise HTTPException(409,'trash_confirm_empty')
     expected = {p.id:p.revision for p in body.projects}
     if len(expected) != len(body.projects):
         raise HTTPException(422,'trash_changed')
-    return purge.empty(expected)
+    return purge.empty(expected,selected_only=selected_only)
+
+
+@app.post('/api/v1/projects-trash/empty')
+def empty_trash(body: EmptyTrash):
+    return _purge_trash(body)
+
+
+@app.post('/api/v1/projects-trash/delete-selected')
+def delete_selected_trash(body: SelectedTrash):
+    return _purge_trash(body,selected_only=True)
 
 
 @app.delete('/api/v1/projects/{pid}')

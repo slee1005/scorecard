@@ -326,6 +326,14 @@ class Project(Model):
         return self
 
 
+def score_before_hole(p: Project, hole: int) -> int | None:
+    """A shot starts with prior-hole scoring, regardless of later entries or timeline order."""
+    prior = [h for h in p.round.holes if h.number < hole]
+    if any(h.score is None or h.par is None for h in prior):
+        return None
+    return sum(h.score - h.par for h in prior)
+
+
 def active_overlays(p: Project, time: float) -> list[Overlay]:
     """Half-open intervals avoid duplicate graphics on exact cut boundaries."""
     return [o for o in p.overlays if o.visible and o.start <= time < o.end]

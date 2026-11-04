@@ -139,6 +139,42 @@
         }
       }
     },
+    "/api/v1/projects-trash/delete-selected": {
+      "post": {
+        "summary": "Delete Selected Trash",
+        "operationId": "delete_selected_trash_api_v1_projects_trash_delete_selected_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectedTrash"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{pid}": {
       "delete": {
         "summary": "Delete Project",
@@ -2098,6 +2134,29 @@
           "relative_to_par"
         ],
         "title": "ScorecardSnapshot"
+      },
+      "SelectedTrash": {
+        "properties": {
+          "projects": {
+            "items": {
+              "$ref": "#/components/schemas/TrashTarget"
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Projects"
+          },
+          "confirm_permanent_delete": {
+            "type": "boolean",
+            "title": "Confirm Permanent Delete",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "projects"
+        ],
+        "title": "SelectedTrash"
       },
       "Selection": {
         "properties": {

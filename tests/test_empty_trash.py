@@ -118,3 +118,42 @@ def test_restart_resumes_only_previously_confirmed_cleanup(client,monkeypatch):
         assert not root.exists()
         assert (untouched/'source').exists()
         assert [item['id'] for item in restarted.get('/api/v1/projects-trash').json()]==[q.id]
+
+
+def selected(c,projects,confirm=True):
+    return c.post('/api/v1/projects-trash/delete-selected',json={'projects':[{'id':p.id,'revision':p.revision} for p in projects], 'confirm_permanent_delete':confirm})
+
+
+def test_individual_delete_preserves_other_trashed_and_active_projects(client):
+    p,root=trashed('Delete only this');q,other=trashed('Keep recoverable')
+    active=storage.create(Project(name='Active'))
+    assert selected(client,[p],False).status_code==409
+    assert root.exists() and other.exists()
+    assert selected(client,[p]).json()=={'deleted_count':1,'pending_cleanup':0}
+    assert not root.exists() and (other/'source').read_bytes()==b'video'
+    assert [item['id'] for item in storage.trash_projects()]==[q.id]
+    assert storage.load(active.id).id==active.id
+    assert storage.trash(q.id,q.revision,restore=True).id==q.id
+    with storage.connect() as db:
+        assert db.execute('SELECT COUNT(*) FROM edit_history WHERE pid=?',(q.id,)).fetchone()[0]==1
+
+
+def test_selected_batch_tolerates_unrelated_trash_changes(client):
+    p,root=trashed('First');q,other=trashed('Second')
+    later,keep=trashed('Added after selection')
+    assert selected(client,[p,q]).json()['deleted_count']==2
+    assert not root.exists() and not other.exists() and keep.exists()
+    assert [item['id'] for item in storage.trash_projects()]==[later.id]
+
+
+def test_selected_delete_rejects_stale_restored_active_empty_or_duplicate_targets(client):
+    p,root=trashed();q,other=trashed('Keep')
+    restored=storage.trash(p.id,p.revision,restore=True)
+    assert selected(client,[p,q]).status_code==409
+    assert root.exists() and other.exists()
+    assert selected(client,[restored]).status_code==409
+    assert selected(client,[]).status_code==422
+    assert selected(client,[q,q]).status_code==422
+    q.revision-=1
+    assert selected(client,[q]).status_code==409
+    assert len(storage.trash_projects())==1

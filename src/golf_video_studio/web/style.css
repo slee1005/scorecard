@@ -1747,3 +1747,16 @@ dialog p {
 #empty-trash-error {
   color: #ffba9e;
 }
+
+.trash-item > div {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.trash-item {
+  flex-wrap: wrap;
+}
+.trash-item > input[type="checkbox"] {
+  flex: 0 0 auto;
+  accent-color: #2cc6b5;
+}

@@ -44,7 +44,7 @@ def test_shot_uses_real_round_name_score_total_hole_length_club_and_remaining(mo
         return original(draw,box,value,*args,**kwargs)
     monkeypatch.setattr(graphics,'centered_text',record)
     graphics.panel(p,Overlay(shot_id=p.shots[0].id))
-    assert {'JOHN LEE','-2','05','PAR 4','405 YDS','2','7 IRON','145 YDS'} <= set(values)
+    assert {'JOHN LEE','E','05','PAR 4','405 YDS','2','7 IRON','145 YDS'} <= set(values)
     # The hole total must not be replaced by the distance of this individual shot.
     p.shots[0].distance=999
     values.clear()
@@ -88,8 +88,32 @@ def test_layouts_are_rgba_nonempty_and_respect_overall_transparency(kind,dimensi
 
 
 def test_missing_round_values_are_not_rendered_as_even_par(monkeypatch):
-    p=Project(shots=[Shot(hole=1)])
+    p=Project(shots=[Shot(hole=2)])
     values=[]
     monkeypatch.setattr(graphics,'centered_text',lambda draw,box,value,*a,**kw:values.append(str(value)))
     graphics.panel(p,Overlay(shot_id=p.shots[0].id))
     assert 'E' not in values and '—' in values and '— YDS' in values
+
+
+def test_shot_score_excludes_current_and_later_holes_and_reacts_to_prior_corrections():
+    p=project();overlay=Overlay(shot_id=p.shots[0].id)
+    before=graphics.panel(p,overlay).tobytes()
+    for h in p.round.holes[4:]:h.score=33
+    assert graphics.panel(p,overlay).tobytes()==before
+    p.round.holes[0].score=8
+    assert graphics.panel(p,overlay).tobytes()!=before
+
+
+@pytest.mark.parametrize('hole,expected',[(1,0),(2,0),(3,-1),(5,0),(18,-3)])
+def test_score_before_each_shot_hole(hole,expected):
+    from golf_video_studio.models import score_before_hole
+    assert score_before_hole(project(),hole)==expected
+
+
+@pytest.mark.parametrize('field',['par','score'])
+def test_missing_prior_values_leave_cumulative_shot_score_unknown(field):
+    from golf_video_studio.models import score_before_hole
+    p=project();setattr(p.round.holes[1],field,None)
+    assert score_before_hole(p,5) is None
+    assert score_before_hole(p,1)==0
+    assert score_before_hole(p,2)==0

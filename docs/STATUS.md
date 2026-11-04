@@ -6,6 +6,7 @@ This status distinguishes working desktop implementation from native preparation
 | --- | --- |
 | Project creation, switching, naming and persistence | Implemented; SQLite + revisions |
 | Project delete / restore | Web confirmation + local trash, retained media/exports/history; active exports block deletion |
+| Selected permanent deletion | Per-row and checkbox selection, explicit target confirmation, subset revision checks; other trash remains recoverable |
 | Empty project trash | Explicit permanent-delete confirmation, exact-set revision check, media/history/job cleanup, durable pending-file retry and startup recovery; synthetic API tests |
 | Round / Shot / Design UNDO / REDO / RESET | Web controls + revision-checked shared API; persisted 100-step field deltas per section, reset confirmation, dependency/collision checks |
 | MP4/MOV/WebM upload and metadata | Implemented; browser codecs vary |
@@ -20,7 +21,7 @@ This status distinguishes working desktop implementation from native preparation
 | Actual FFmpeg MP4/H.264/AAC export + progress/download | Implemented and tested with synthetic audio/video |
 | Course library search, multi-tee/category selection | Saved local library plus explicit GolfCourseAPI online name search/import |
 | GolfCourseAPI key settings and imports | Implemented; local secret settings, 24-hour cache, exact tee/category/hole mapping; live user-key validation pending |
-| Manual shot numbers and popup themes/transparency | Broadcast name/score/hole/yardage/large-shot popup, club/remaining strip, six themes and shared preview/export |
+| Manual shot numbers and popup themes/transparency | Broadcast name/prior-hole-score/hole/yardage/large-shot popup, club/remaining strip, six themes and shared preview/export |
 | Immutable scorecard timeline snapshots | Shared model/rendering; 5/9/18-hole captures, confirmed replacement/history and real three-card MP4 pixel tests; web confirmation/immutable-data/replacement/history QA verified; native device testing pending |
 | Modern 18-hole scorecard | Two nine-hole sections; actual digit ink centered within single/double circle/square indicators |
 | Aspect-aware layout presets | New cards fit the source aspect; explicit recommended-layout action preserves old projects until selected |
@@ -40,7 +41,7 @@ This status distinguishes working desktop implementation from native preparation
 
 ## Verification evidence
 
-- Backend suite: 95 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
+- Backend suite: 106 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
 - Existing adjacent ShotTracer suite: 92 tests passed; source was not edited.
 - Browser QA uses a temporary data home: Korean workspace render, real keyboard round entry/autosave, synthetic video upload, shot creation, preview graphics and real export submission/download readiness.
 - GolfCourseAPI integration tests use synthetic responses; no real API key was supplied. Credential redaction, auth/rate-limit/network errors, caching, refresh and snapshot integrity are covered.
@@ -50,6 +51,7 @@ This status distinguishes working desktop implementation from native preparation
 - Native snapshot actions share the revision-checked server APIs; TypeScript, official dependency validation and iOS/Android JS exports passed. No simulator or physical-device acceptance is claimed.
 - Project history/trash web QA: edited and undid/redid round data, confirmed and undid round reset, undid a shot club change and a card theme change, reset design, deleted/restored the synthetic-video project and verified retained graphics/history controls.
 - Empty-trash browser QA: isolated temporary projects verified the enabled button, exact project name/count, irreversible-delete warning and Cancel path; permanent removal/failure/restart checks ran only against pytest scratch data.
+- Selected-trash/prior-hole-score QA: checkbox and row actions confirmed only one named temporary target; Cancel preserved both trash items. A Hole 3 popup displayed -1 from Holes 1–2 despite entered current/future scores. The synthetic MP4 test uses the same prior-hole scoring path.
 - Source and mobile lockfiles are retained for reproducibility. See README commands for rerunning validation.
 
 ## Next development milestones

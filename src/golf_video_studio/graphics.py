@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
 
-from .models import Overlay, Project, Style, numbered_shots, totals
+from .models import Overlay, Project, Style, numbered_shots, totals, score_before_hole
 
 Box = tuple[float, float, float, float]
 
@@ -151,7 +151,7 @@ def _shot(c: Canvas, p: Project, overlay: Overlay):
     c.background(c.box(.81, .018, 1, .29), c.accent)
     c.text(c.box(.035, .045, .775, .255), p.round.player or 'PLAYER', 31 * k * text_scale, align='left')
     c.text(c.box(.82, .04, .99, .10), 'TO PAR', 10 * k, c.accent_ink)
-    c.text(c.box(.82, .11, .99, .26), relative_text(totals(p.round.holes)['relative']), 36 * k * text_scale, c.accent_ink)
+    c.text(c.box(.82, .11, .99, .26), relative_text(score_before_hole(p,shot.hole)), 36 * k * text_scale, c.accent_ink)
     c.background(c.box(0, .29, 1, .73), c.alt)
     c.background(c.box(.78, .29, 1, .73), c.deep)
     for x in (.24, .78):

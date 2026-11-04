@@ -1,4 +1,11 @@
 const en = {
+  selectTrashProject: "Select project",
+  deleteSelected: "Permanently delete selected",
+  selectedTrashDeleted:
+    "Selected projects and their files were permanently deleted.",
+  shotPriorScoreHelp:
+    "Shot TO PAR uses only holes before this shot\u2019s hole. Hole 1 starts at E; missing prior scores or pars display \u2014. Current and later holes never count.",
+
   emptyTrash: "Empty trash",
   emptyTrashWarning:
     "This permanently deletes every project listed below, including its original video, reference files, exports, scorecard snapshots and edit history. Restore and UNDO will no longer be available.",
@@ -366,6 +373,12 @@ const en = {
   untitled: "Untitled round",
 };
 const ko = {
+  selectTrashProject: "프로젝트 선택",
+  deleteSelected: "선택한 프로젝트 영구 삭제",
+  selectedTrashDeleted: "선택한 프로젝트와 파일을 영구 삭제했습니다.",
+  shotPriorScoreHelp:
+    "샷의 파 대비 스코어는 현재 홀 이전까지만 계산합니다. 1번 홀은 E로 시작하며 이전 홀의 스코어·파가 빠지면 —로 표시합니다. 현재·이후 홀은 포함하지 않습니다.",
+
   emptyTrash: "휴지통 비우기",
   emptyTrashWarning:
     "아래 모든 프로젝트의 원본 영상·참고 파일·출력 파일·스코어카드 스냅샷·편집 기록을 영구 삭제합니다. 삭제 후에는 복원하거나 UNDO할 수 없습니다.",
