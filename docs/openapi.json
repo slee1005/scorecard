@@ -71,7 +71,68 @@
         }
       }
     },
+    "/api/v1/projects-trash": {
+      "get": {
+        "summary": "List Trash",
+        "operationId": "list_trash_api_v1_projects_trash_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{pid}": {
+      "delete": {
+        "summary": "Delete Project",
+        "operationId": "delete_project_api_v1_projects__pid__delete",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectRemoval"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "summary": "Get Project",
         "operationId": "get_project_api_v1_projects__pid__get",
@@ -127,6 +188,100 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{pid}/restore": {
+      "post": {
+        "summary": "Restore Project",
+        "operationId": "restore_project_api_v1_projects__pid__restore_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectRevision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{pid}/history": {
+      "post": {
+        "summary": "Edit History",
+        "operationId": "edit_history_api_v1_projects__pid__history_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryAction"
               }
             }
           }
@@ -1157,6 +1312,45 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "HistoryAction": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "round",
+              "shot",
+              "design"
+            ],
+            "title": "Scope"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "undo",
+              "redo",
+              "reset"
+            ],
+            "title": "Action"
+          },
+          "confirm_reset": {
+            "type": "boolean",
+            "title": "Confirm Reset",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "scope",
+          "action"
+        ],
+        "title": "HistoryAction"
+      },
       "Hole": {
         "properties": {
           "number": {
@@ -1395,6 +1589,39 @@
         "additionalProperties": false,
         "type": "object",
         "title": "Project"
+      },
+      "ProjectRemoval": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "confirm_delete": {
+            "type": "boolean",
+            "title": "Confirm Delete",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "title": "ProjectRemoval"
+      },
+      "ProjectRevision": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "title": "ProjectRevision"
       },
       "ProviderKey": {
         "properties": {

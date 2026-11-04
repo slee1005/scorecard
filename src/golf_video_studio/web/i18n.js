@@ -1,4 +1,48 @@
 const en = {
+  undoLabel: "UNDO",
+  redoLabel: "REDO",
+  resetLabel: "RESET",
+  editHistory: "Edit history",
+  undo: "Undo this section (\u2318/Ctrl+Z)",
+  redo: "Redo this section (\u2318/Ctrl+Shift+Z)",
+  historyHelp:
+    "Separate round / shot / design history \u00b7 last 100 edits, saved with the project.",
+  reset_round:
+    "Clear player, date and manual round entries. Imported course/tee defaults are restored; recorded scores are cleared. Captured scorecards stay unchanged.",
+  reset_shot:
+    "Remove all shots and their shot popups. Captured scorecards, round scores and source video stay saved.",
+  reset_design:
+    "Restore default colors, fonts, transparency and layout for all graphics. Timing, templates, saved presets and captured scores stay saved. Colliding default layouts are rejected.",
+  resetUndoHelp:
+    "This reset is saved as one edit. UNDO restores the previous state.",
+  resetConfirm: "Confirm RESET",
+  resetDone: "Section reset. UNDO can restore it.",
+  undoDone: "Edit undone",
+  redoDone: "Edit redone",
+  deleteProject: "Delete project",
+  projectTrash: "Project trash",
+  deleteProjectHelp:
+    "Move this project to trash? Video, exports and edit history are retained locally and can be restored from Project trash.",
+  moveToTrash: "Move to trash",
+  projectDeleted: "Project moved to trash",
+  projectRestored: "Project restored",
+  restoreProject: "Restore",
+  trashHelp:
+    "Deleted projects stay on this device with their files. Restore a project to edit it again. No files are permanently deleted.",
+  trashEmpty: "No deleted projects.",
+  history_dependency:
+    "Another section now depends on this edit, or the restored layout would collide. Undo the related edit first. Nothing was changed.",
+  history_empty: "There are no edits to undo or redo in this section.",
+  history_reset_collision:
+    "Default layouts would collide at the current times. Adjust timing or placement before resetting. Nothing was changed.",
+  history_confirm_reset: "Confirm this section reset first.",
+  project_confirm_delete: "Confirm moving this project to trash first.",
+  project_export_active:
+    "Wait for this project\u2019s queued/running exports to finish before deleting it.",
+  project_in_trash: "This project is in trash. Restore it to continue.",
+  project_not_in_trash:
+    "This project is no longer in trash. Reload the project list.",
+
   snapshot: "Snapshot",
   cancel: "Cancel",
   snapshotCurrentHole: "Current hole",
@@ -306,6 +350,50 @@ const en = {
   untitled: "Untitled round",
 };
 const ko = {
+  undoLabel: "UNDO",
+  redoLabel: "REDO",
+  resetLabel: "RESET",
+  editHistory: "편집 기록",
+  undo: "이 영역 실행 취소 (⌘/Ctrl+Z)",
+  redo: "이 영역 다시 실행 (⌘/Ctrl+Shift+Z)",
+  historyHelp:
+    "라운드·샷·디자인별 독립 기록 · 최근 100개 편집을 프로젝트에 저장합니다.",
+  reset_round:
+    "플레이어·날짜·수동 라운드 입력과 점수를 초기화합니다. 가져온 코스·티는 원본 값으로 복원합니다. 캡처된 스코어카드 점수는 유지됩니다.",
+  reset_shot:
+    "모든 샷과 샷 팝업을 제거합니다. 캡처한 스코어카드·라운드 점수·원본 영상은 유지됩니다.",
+  reset_design:
+    "모든 그래픽의 색상·글꼴·투명도·배치를 기본 스타일로 복원합니다. 표시 시간·템플릿·저장한 프리셋·캡처 점수는 유지합니다. 기본 배치가 겹치면 초기화를 거부합니다.",
+  resetUndoHelp:
+    "초기화도 편집 한 건으로 저장합니다. UNDO로 이전 상태를 복구할 수 있습니다.",
+  resetConfirm: "RESET 확인",
+  resetDone: "초기화했습니다. UNDO로 복구할 수 있습니다.",
+  undoDone: "실행을 취소했습니다",
+  redoDone: "다시 실행했습니다",
+  deleteProject: "프로젝트 삭제",
+  projectTrash: "프로젝트 휴지통",
+  deleteProjectHelp:
+    "이 프로젝트를 휴지통으로 이동할까요? 영상·출력 파일·편집 기록은 기기에 보관하며 프로젝트 휴지통에서 복원할 수 있습니다.",
+  moveToTrash: "휴지통으로 이동",
+  projectDeleted: "프로젝트를 휴지통으로 이동했습니다",
+  projectRestored: "프로젝트를 복원했습니다",
+  restoreProject: "복원",
+  trashHelp:
+    "삭제한 프로젝트와 파일은 이 기기에 남습니다. 복원하면 다시 편집할 수 있으며 파일을 영구 삭제하지 않습니다.",
+  trashEmpty: "삭제한 프로젝트가 없습니다.",
+  history_dependency:
+    "다른 영역의 편집이 이 변경에 의존하거나 복원할 배치가 겹칩니다. 관련 편집을 먼저 취소하세요. 데이터는 변경하지 않았습니다.",
+  history_empty: "이 영역에서 취소하거나 다시 실행할 편집이 없습니다.",
+  history_reset_collision:
+    "현재 시간 구간에서 기본 배치가 겹칩니다. 시간이나 배치를 먼저 조정하세요. 데이터는 변경하지 않았습니다.",
+  history_confirm_reset: "영역 초기화를 먼저 확인하세요.",
+  project_confirm_delete: "프로젝트 휴지통 이동을 먼저 확인하세요.",
+  project_export_active:
+    "이 프로젝트의 대기·진행 중인 내보내기가 끝난 후 삭제하세요.",
+  project_in_trash: "휴지통에 있는 프로젝트입니다. 복원 후 이용하세요.",
+  project_not_in_trash:
+    "이미 휴지통에서 복원한 프로젝트입니다. 목록을 새로 불러오세요.",
+
   snapshot: "스냅샷",
   cancel: "취소",
   snapshotCurrentHole: "현재 홀",

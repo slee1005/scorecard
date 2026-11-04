@@ -17,7 +17,7 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 75 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 88 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -127,6 +127,20 @@ Timeline labels show the captured hole count and version. Select a card in **Des
 Existing live cards are frozen once from their currently saved round and labeled migrated snapshots; original insertion-time scores cannot be reconstructed. This upgrade increments the project revision, so old offline drafts must resolve a conflict rather than overwrite the migration. Deleted overlays retain their captured history in the project backup. Each project supports up to 1,000 captures including previous versions. One project contains one round; its project ID is also the snapshot round ID.
 
 The Expo Videos screen uses the same revision-checked capture/replace APIs, confirmation summaries, version history and backend PNG rendering as the web editor. Insert at the current native playhead; use the web editor for detailed timing and styling. Capturing requires a successful sync/connection. Automated tests cover 5/9/18-hole captures, later corrections, explicit replacement, migration, immutable fields, completed-only totals and three historical cards pixel-compared against an actual MP4 export. Native TypeScript/bundle checks do not establish iOS/Android device behavior; device acceptance testing remains pending.
+
+## Project trash and edit history
+
+Use **Delete project** in the top bar to move the selected project to **Project trash** after confirmation. Restore it from the sidebar trash button. Source video, exported files, scorecard snapshots and edit history remain on this device; this action does not reclaim disk space. Projects with queued/running exports cannot be deleted. Trashed projects are hidden from the workspace and reject editing, playback and new exports until restored. Deleting the last active project opens a new blank workspace.
+
+Each **Round / Shot / Design** inspector tab has independent **UNDO / REDO / RESET** controls. The latest 100 edits per section are stored in SQLite and survive reloads and project switching. A new edit clears only that section's redo branch. Project naming, source video/reference uploads and provider key settings are outside this history. The controls operate on the whole section, including all shots or all graphic styles, rather than just the selected item.
+
+- **Round RESET:** clears player/date/manual round entries and scores; restores imported course/tee defaults when available.
+- **Shot RESET:** removes all shots and their popups, preserving scorecards, round scores and source video.
+- **Design RESET:** restores factory colors, fonts, transparency and aspect-aware positions/sizes for all graphics. Timing, templates, saved presets and captured scores are preserved. Layout collisions reject the reset without changes.
+
+RESET requires confirmation and is one undoable edit. Scorecard insertion, deletion and explicit data replacement can also be undone/redone through Design history without recapturing scores or deleting immutable snapshots. Round and shot history never refresh historical card data. If another section now depends on an edited object, undo the dependent edit first; stale revisions and invalid restored layouts are rejected without consuming history.
+
+Outside text inputs, **⌘/Ctrl+Z** undoes and **⌘/Ctrl+Shift+Z** or **Ctrl+Y** redoes the active section (Round on the scorecard page). Inputs keep native text undo. These controls and the trash interface are implemented in the web editor. Shared API history also records native outbox saves by section; native history/trash controls are not yet implemented. Edit history lives in the local database, not the downloadable project JSON backup.
 
 ## Structure
 

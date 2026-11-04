@@ -27,6 +27,7 @@ const fmt = (v) =>
 const S = {
   p: null,
   totals: null,
+  history: {},
   provider: { configured: false, source: "none" },
   remoteQuery: "",
   remoteResults: null,
@@ -125,6 +126,7 @@ function downloadJSON(value, name) {
 }
 function setProject(data) {
   S.p = data.project;
+  S.history = data.history || {};
   S.totals = data.totals;
   S.overrides = data.overrides || [];
   localStorage.setItem("gvs-project", S.p.id);
@@ -191,8 +193,8 @@ function shell() {
     )
     .join(
       "",
-    )}</nav><div class="project-head"><span class="eyebrow">${t("projects")}</span>${button("new", "+", "icon", `aria-label="${t("newProject")}"`)}</div><div id="projects"></div><button class="new-project" data-action="new">＋ ${t("newProject")}</button><div class="sidebar-footer"><span class="online-dot"></span>${t("local")}<p>${t("private")}</p>${button("help", t("help"), "text-button")}</div></aside>
-<div class="app-main"><header class="topbar"><div class="breadcrumb">${t("workspace")}<span>/</span><input id="project-name" aria-label="${t("projectName")}"></div><div class="top-actions"><span id="save-status"></span><select id="language" aria-label="${t("language")}"><option value="ko" ${lang === "ko" ? "selected" : ""}>한국어</option><option value="en" ${lang === "en" ? "selected" : ""}>EN</option></select>${button("export", `↗ &nbsp;${t("export")}`, "primary")}</div></header>
+    )}</nav><div class="project-head"><span class="eyebrow">${t("projects")}</span>${button("new", "+", "icon", `aria-label="${t("newProject")}"`)}</div><div id="projects"></div><button class="new-project" data-action="new">＋ ${t("newProject")}</button><div class="sidebar-footer"><span class="online-dot"></span>${t("local")}<p>${t("private")}</p>${button("project-trash", t("projectTrash"), "text-button")}${button("help", t("help"), "text-button")}</div></aside>
+<div class="app-main"><header class="topbar"><div class="breadcrumb">${t("workspace")}<span>/</span><input id="project-name" aria-label="${t("projectName")}"></div><div class="top-actions"><span id="save-status"></span>${button("delete-project", t("deleteProject"), "subtle danger")}<select id="language" aria-label="${t("language")}"><option value="ko" ${lang === "ko" ? "selected" : ""}>한국어</option><option value="en" ${lang === "en" ? "selected" : ""}>EN</option></select>${button("export", `↗ &nbsp;${t("export")}`, "primary")}</div></header>
 <div class="workspace-body"><main><section id="studio-view"><div class="section-head"><div><span class="eyebrow">${t("preview")}</span><h1 id="video-title">${t("noVideo")}</h1></div><span id="metadata"></span></div><div class="preview-well"><div id="empty-preview"><div class="empty-copy"><span class="pill">GOLF VIDEO STUDIO / 01</span><h2>${t("emptyTitle")}</h2><p>${t("emptyDesc")}</p>${button("upload", `＋ &nbsp; ${t("choose")}`, "primary large")}<small>${t("formats")}</small></div><span class="art-label">${t("sample")}</span></div><div id="video-box" hidden><video id="video" playsinline preload="metadata"></video><div id="overlay-layer"></div></div></div><div class="playback"><span id="video-meta"></span><div>${button("prev", "│◀", "icon", `aria-label="${t("prevFrame")}"`)}${button("play", "▶", "play-button", `aria-label="${t("play")}"`)}${button("next", "▶│", "icon", `aria-label="${t("nextFrame")}"`)}</div><span id="time">00:00 / 00:00</span></div><div id="onboarding" class="onboarding">${["step1", "step2", "step3"].map((k, i) => `<div><b>0${i + 1}</b><span>${t(k)}</span><i>${i === 0 ? "↗" : i === 1 ? "▦" : "✓"}</i></div>`).join("")}</div>
 <div class="timeline"><div class="timeline-head"><span class="eyebrow">${t("timeline")}</span><div>${button("add-shot", `＋ ${t("addShot")}`, "subtle")}${button("add-card", `＋ ${t("addCard")}`, "subtle")}<label class="zoom">− <input id="zoom" type="range" min="1" max="8" value="${S.zoom}" aria-label="${t("zoom")}"> ＋</label></div></div><input id="seek" type="range" min="0" max="1" step=".001" value="0" aria-label="${t("seek")}"><div class="timeline-scroll"><div id="tracks"></div></div><p class="timeline-help">${t("markers")}</p></div><div class="shotlist-head"><span class="eyebrow">${t("shotList")}</span><span id="shot-count"></span></div><div id="shot-list"></div></section><section id="courses-view" hidden></section><section id="rounds-view" hidden></section><section id="exports-view" hidden></section></main><aside class="inspector"><div class="inspector-head"><span class="eyebrow">${t("inspector")}</span><span>☷</span></div><div class="tabs">${["round", "shot", "design"].map((k) => button("tab", t(k), "", `data-tab="${k}"`)).join("")}</div><div id="inspector-content"></div></aside></div></div><div id="notice" hidden></div><input hidden type="file" id="video-file" accept=".mp4,.mov,.webm"><input hidden type="file" id="csv-file" accept=".csv"><input hidden type="file" id="reference-file" accept=".png,.jpg,.jpeg,.pdf"><input hidden type="file" id="course-file" accept=".json"><dialog id="dialog"></dialog>`;
   $("#video").addEventListener("timeupdate", tick);
@@ -265,6 +267,81 @@ function render() {
   if (S.view === "exports") renderExports();
   tick();
   fitVideo();
+}
+function historyBar(scope) {
+  const counts = S.history[scope] || { undo: 0, redo: 0 };
+  return `<section class="history-panel"><div class="history-actions" role="group" aria-label="${t(scope)} ${t("editHistory")}">${button("history-undo", `↶ ${t("undoLabel")}`, "outline", `data-scope="${scope}" ${counts.undo ? "" : "disabled"} title="${t("undo")}"`)}${button("history-redo", `↷ ${t("redoLabel")}`, "outline", `data-scope="${scope}" ${counts.redo ? "" : "disabled"} title="${t("redo")}"`)}${button("history-reset", t("resetLabel"), "subtle", `data-scope="${scope}" title="${t("reset_" + scope)}"`)}</div><p class="inspector-note">${t("historyHelp")}</p></section>`;
+}
+function commitHistory(action, scope) {
+  const task = S.chain.then(async () => {
+    if (S.conflict) throw Error(t("conflict"));
+    const p = S.p;
+    if (!p || (action !== "reset" && !S.history[scope]?.[action])) return;
+    S.saving = true;
+    renderStatus();
+    try {
+      setProject(
+        await api(`/projects/${p.id}/history`, {
+          method: "POST",
+          body: JSON.stringify({
+            revision: p.revision,
+            scope,
+            action,
+            confirm_reset: action === "reset",
+          }),
+        }),
+      );
+      notice(
+        t(
+          action === "reset"
+            ? "resetDone"
+            : action === "undo"
+              ? "undoDone"
+              : "redoDone",
+        ),
+      );
+    } finally {
+      S.saving = false;
+      renderStatus();
+    }
+  });
+  S.chain = task.catch(() => {});
+  return task;
+}
+function resetDialog(scope) {
+  dialog(
+    `<div class="dialog-head"><h2>${t(scope)} · ${t("resetLabel")}</h2>${button("close", "×", "icon")}</div><p>${t("reset_" + scope)}</p><p class="inspector-note">${t("resetUndoHelp")}</p><div class="snapshot-actions">${button("close", t("cancel"), "outline")}${button("confirm-reset", t("resetConfirm"), "primary", `data-scope="${scope}"`)}</div>`,
+  );
+}
+async function showTrash() {
+  const items = await api("/projects-trash");
+  dialog(
+    `<div class="dialog-head"><h2>${t("projectTrash")}</h2>${button("close", "×", "icon")}</div><p>${t("trashHelp")}</p><div class="trash-list">${items.length ? items.map((p) => `<article class="trash-item"><div><strong>${esc(p.name)}</strong><small>${esc(new Date(p.deleted_at).toLocaleString(lang))}</small></div>${button("restore-project", t("restoreProject"), "outline", `data-id="${p.id}" data-revision="${p.revision}"`)}</article>`).join("") : `<p class="empty-note">${t("trashEmpty")}</p>`}</div>`,
+  );
+}
+async function deleteCurrentProject() {
+  await S.chain;
+  if (S.conflict) throw Error(t("conflict"));
+  const p = S.p;
+  await api(`/projects/${p.id}`, {
+    method: "DELETE",
+    body: JSON.stringify({ revision: p.revision, confirm_delete: true }),
+  });
+  $("#dialog").close();
+  $("#video").pause();
+  S.shot = S.overlay = null;
+  await refreshProjects();
+  if (S.projects.length) setProject(await api(`/projects/${S.projects[0].id}`));
+  else {
+    setProject(
+      await api("/projects", {
+        method: "POST",
+        body: JSON.stringify({ name: t("newName") }),
+      }),
+    );
+    await refreshProjects();
+  }
+  notice(t("projectDeleted"));
 }
 function renderInspector() {
   const p = S.p;
@@ -345,7 +422,7 @@ function renderInspector() {
       )}${button("apply-preset", t("applyPreset"), "wide subtle")}${button("save-preset", t("savePreset"), "wide subtle")}${button("delete-overlay", t("deleteOverlay"), "wide danger")}`;
     } else html = `<p class="empty-note">${t("selectOverlay")}</p>`;
   }
-  $("#inspector-content").innerHTML = html;
+  $("#inspector-content").innerHTML = historyBar(S.tab) + html;
 }
 function shotNumber(shot) {
   return displayShotNumber(S.p.shots, shot);
@@ -754,6 +831,64 @@ async function confirmSnapshot(buttonElement) {
 }
 async function action(name, el) {
   switch (name) {
+    case "history-undo":
+    case "history-redo":
+      await commitHistory(
+        name === "history-undo" ? "undo" : "redo",
+        el.dataset.scope,
+      );
+      break;
+    case "history-reset":
+      resetDialog(el.dataset.scope);
+      break;
+    case "confirm-reset":
+      el.disabled = true;
+      try {
+        await commitHistory("reset", el.dataset.scope);
+        $("#dialog").close();
+      } catch (e) {
+        $("#dialog").close();
+        throw e;
+      }
+      break;
+    case "delete-project":
+      dialog(
+        `<div class="dialog-head"><h2>${t("deleteProject")}</h2>${button("close", "×", "icon")}</div><p><strong>${esc(S.p.name)}</strong></p><p>${t("deleteProjectHelp")}</p><div class="snapshot-actions">${button("close", t("cancel"), "outline")}${button("confirm-delete-project", t("moveToTrash"), "danger")}</div>`,
+      );
+      break;
+    case "confirm-delete-project":
+      el.disabled = true;
+      try {
+        await deleteCurrentProject();
+      } catch (e) {
+        el.disabled = false;
+        $("#dialog").close();
+        throw e;
+      }
+      break;
+    case "project-trash":
+      await showTrash();
+      break;
+    case "restore-project":
+      await S.chain;
+      if (S.conflict) throw Error(t("conflict"));
+      el.disabled = true;
+      try {
+        setProject(
+          await api(`/projects/${el.dataset.id}/restore`, {
+            method: "POST",
+            body: JSON.stringify({ revision: Number(el.dataset.revision) }),
+          }),
+        );
+        $("#dialog").close();
+        await refreshProjects();
+        notice(t("projectRestored"));
+      } catch (e) {
+        el.disabled = false;
+        $("#dialog").close();
+        throw e;
+      }
+      break;
     case "view":
       S.view = el.dataset.view;
       render();
@@ -1331,10 +1466,23 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (
-    ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(e.target.tagName) ||
+    ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) ||
+    e.target.isContentEditable ||
     $("#dialog").open
   )
     return;
+  if (
+    (e.metaKey || e.ctrlKey) &&
+    (e.key.toLowerCase() === "z" || e.key.toLowerCase() === "y")
+  ) {
+    e.preventDefault();
+    const scope = S.view === "rounds" ? "round" : S.tab;
+    commitHistory(
+      e.shiftKey || e.key.toLowerCase() === "y" ? "redo" : "undo",
+      scope,
+    ).catch(error);
+    return;
+  }
   if (e.code === "Space") {
     e.preventDefault();
     action("play").catch(error);

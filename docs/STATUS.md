@@ -5,6 +5,8 @@ This status distinguishes working desktop implementation from native preparation
 | Area | Status |
 | --- | --- |
 | Project creation, switching, naming and persistence | Implemented; SQLite + revisions |
+| Project delete / restore | Web confirmation + local trash, retained media/exports/history; active exports block deletion |
+| Round / Shot / Design UNDO / REDO / RESET | Web controls + revision-checked shared API; persisted 100-step field deltas per section, reset confirmation, dependency/collision checks |
 | MP4/MOV/WebM upload and metadata | Implemented; browser codecs vary |
 | Native HTML video, seek, frame steps, timeline zoom | Implemented |
 | Round, 18-hole par/yardage/score editing | Implemented; unknown values retained |
@@ -37,7 +39,7 @@ This status distinguishes working desktop implementation from native preparation
 
 ## Verification evidence
 
-- Backend suite: 75 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
+- Backend suite: 88 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
 - Existing adjacent ShotTracer suite: 92 tests passed; source was not edited.
 - Browser QA uses a temporary data home: Korean workspace render, real keyboard round entry/autosave, synthetic video upload, shot creation, preview graphics and real export submission/download readiness.
 - GolfCourseAPI integration tests use synthetic responses; no real API key was supplied. Credential redaction, auth/rate-limit/network errors, caching, refresh and snapshot integrity are covered.
@@ -45,6 +47,7 @@ This status distinguishes working desktop implementation from native preparation
 - Raster tests verify digit/marker centers across sans/serif/mono, including two-digit scores and dashes. The real export test overlays the broadcast shot and modern full card together with audio.
 - Snapshot web QA: a temporary synthetic-video project captured 5 holes, entered Hole 6 without altering the old 20-stroke card, confirmed replacement to a 24-stroke v2, and inspected retained v1 history.
 - Native snapshot actions share the revision-checked server APIs; TypeScript, official dependency validation and iOS/Android JS exports passed. No simulator or physical-device acceptance is claimed.
+- Project history/trash web QA: edited and undid/redid round data, confirmed and undid round reset, undid a shot club change and a card theme change, reset design, deleted/restored the synthetic-video project and verified retained graphics/history controls.
 - Source and mobile lockfiles are retained for reproducibility. See README commands for rerunning validation.
 
 ## Next development milestones

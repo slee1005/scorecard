@@ -52,7 +52,14 @@ def submit(p: Project, quality: str, resolution: str) -> dict:
             raise HTTPException(429, "Render queue is full")
         job = dict(id=uid(), project_id=p.id, name=p.name, status="queued", progress=0, error=None,
                    created_at=storage.now(), quality=quality, resolution=resolution, revision=p.revision)
-        storage.job_put(job)
+        # Queue publication shares SQLite's writer lock with project trashing.
+        # Whichever wins either protects the active job or rejects the stale export.
+        with storage.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            row = db.execute('SELECT revision FROM projects WHERE id=? AND id NOT IN (SELECT id FROM project_trash)', (p.id,)).fetchone()
+            if not row or row[0] != p.revision:
+                raise HTTPException(409,'snapshot_stale_project')
+            db.execute('INSERT INTO jobs VALUES (?,?)', (job['id'], json.dumps(job)))
         POOL.submit(run, p.model_copy(deep=True), job)
     return job
 

@@ -39,6 +39,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/projects-trash": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Trash */
+    get: operations["list_trash_api_v1_projects_trash_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/projects/{pid}": {
     parameters: {
       query?: never;
@@ -51,6 +68,41 @@ export interface paths {
     /** Put Project */
     put: operations["put_project_api_v1_projects__pid__put"];
     post?: never;
+    /** Delete Project */
+    delete: operations["delete_project_api_v1_projects__pid__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/projects/{pid}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Restore Project */
+    post: operations["restore_project_api_v1_projects__pid__restore_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/projects/{pid}/history": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Edit History */
+    post: operations["edit_history_api_v1_projects__pid__history_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -433,6 +485,26 @@ export interface components {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
     };
+    /** HistoryAction */
+    HistoryAction: {
+      /** Revision */
+      revision: number;
+      /**
+       * Scope
+       * @enum {string}
+       */
+      scope: "round" | "shot" | "design";
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "undo" | "redo" | "reset";
+      /**
+       * Confirm Reset
+       * @default false
+       */
+      confirm_reset: boolean;
+    };
     /** Hole */
     Hole: {
       /** Number */
@@ -525,6 +597,21 @@ export interface components {
       };
       /** Reference File */
       reference_file?: string | null;
+    };
+    /** ProjectRemoval */
+    ProjectRemoval: {
+      /** Revision */
+      revision: number;
+      /**
+       * Confirm Delete
+       * @default false
+       */
+      confirm_delete: boolean;
+    };
+    /** ProjectRevision */
+    ProjectRevision: {
+      /** Revision */
+      revision: number;
     };
     /** ProviderKey */
     ProviderKey: {
@@ -996,6 +1083,26 @@ export interface operations {
       };
     };
   };
+  list_trash_api_v1_projects_trash_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
   get_project_api_v1_projects__pid__get: {
     parameters: {
       query?: never;
@@ -1039,6 +1146,111 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["Project"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_project_api_v1_projects__pid__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        pid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProjectRemoval"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  restore_project_api_v1_projects__pid__restore_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        pid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProjectRevision"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  edit_history_api_v1_projects__pid__history_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        pid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["HistoryAction"];
       };
     };
     responses: {

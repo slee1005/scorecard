@@ -26,6 +26,9 @@ def connect():
     db.execute("PRAGMA journal_mode=WAL")
     db.executescript("""
     CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, revision INTEGER NOT NULL, data TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS project_trash (id TEXT PRIMARY KEY, deleted_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS edit_history (seq INTEGER PRIMARY KEY AUTOINCREMENT, pid TEXT NOT NULL, scope TEXT NOT NULL, data TEXT NOT NULL, applied INTEGER NOT NULL);
+    CREATE INDEX IF NOT EXISTS history_project_scope ON edit_history(pid,scope,seq);
     CREATE TABLE IF NOT EXISTS courses (id TEXT PRIMARY KEY, data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, data TEXT NOT NULL);
     """)
@@ -34,13 +37,15 @@ def connect():
 
 def projects() -> list[Project]:
     with connect() as db:
-        ids = [row[0] for row in db.execute('SELECT id FROM projects')]
+        ids = [row[0] for row in db.execute('SELECT id FROM projects WHERE id NOT IN (SELECT id FROM project_trash)')]
     return sorted([load(pid) for pid in ids], key=lambda p:p.updated_at, reverse=True)
 
 
-def load(pid: str) -> Project:
+def load(pid: str, *, include_deleted: bool = False) -> Project:
     for _ in range(3):
         with connect() as db:
+            if not include_deleted and db.execute('SELECT 1 FROM project_trash WHERE id=?',(pid,)).fetchone():
+                raise HTTPException(404,'project_in_trash')
             row = db.execute('SELECT data FROM projects WHERE id=?',(pid,)).fetchone()
             if not row:
                 raise HTTPException(404,'Project not found')
@@ -73,13 +78,47 @@ def create(p: Project) -> Project:
 
 
 def save(p: Project) -> Project:
+    from . import history
     expected = p.revision
+    old = load(p.id)
     p.revision += 1
     p.updated_at = now()
     with connect() as db:
-        cursor = db.execute("UPDATE projects SET revision=?,data=? WHERE id=? AND revision=?", (p.revision, p.model_dump_json(), p.id, expected))
+        cursor = db.execute("UPDATE projects SET revision=?,data=? WHERE id=? AND revision=? AND NOT EXISTS (SELECT 1 FROM project_trash WHERE id=?)", (p.revision, p.model_dump_json(), p.id, expected, p.id))
         if cursor.rowcount != 1:
             raise HTTPException(409, "Project changed elsewhere. Reload before saving; your edits have not overwritten newer data.")
+        history.record(db, old, p)
+    return p
+
+
+def trash_projects() -> list[dict]:
+    with connect() as db:
+        rows = db.execute('SELECT p.data,t.deleted_at FROM projects p JOIN project_trash t ON p.id=t.id ORDER BY t.deleted_at DESC').fetchall()
+    return [dict(id=p.id,name=p.name,revision=p.revision,deleted_at=row['deleted_at'])
+        for row in rows for p in [Project.model_validate_json(row['data'])]]
+
+
+def trash(pid: str, revision: int, *, restore: bool = False) -> Project:
+    p = load(pid, include_deleted=restore)
+    if p.revision != revision:
+        raise HTTPException(409, 'snapshot_stale_project')
+    p.revision += 1
+    p.updated_at = now()
+    with connect() as db:
+        db.execute('BEGIN IMMEDIATE')
+        if not restore:
+            # Serialize this check with job creation so a queued export cannot lose its project.
+            active = [json.loads(r[0]) for r in db.execute('SELECT data FROM jobs')]
+            if any(j['project_id']==pid and j['status'] in ('queued','running') for j in active):
+                raise HTTPException(409,'project_export_active')
+        cursor = db.execute('UPDATE projects SET revision=?,data=? WHERE id=? AND revision=?', (p.revision,p.model_dump_json(),pid,revision))
+        if cursor.rowcount != 1:
+            raise HTTPException(409,'snapshot_stale_project')
+        if restore:
+            if db.execute('DELETE FROM project_trash WHERE id=?',(pid,)).rowcount != 1:
+                raise HTTPException(409,'project_not_in_trash')
+        else:
+            db.execute('INSERT INTO project_trash VALUES (?,?)',(pid,now()))
     return p
 
 

@@ -1690,3 +1690,43 @@ dialog p {
 .snapshot-inspector details summary {
   line-height: 1.6;
 }
+
+.history-panel {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+.history-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.history-actions button {
+  padding: 9px 4px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.history-actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.trash-list {
+  display: grid;
+  gap: 12px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.trash-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--line);
+  padding: 12px;
+  border-radius: 10px;
+}
+.trash-item small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}

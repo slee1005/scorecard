@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError, SecretStr, Field
 
-from . import rendering, storage, course_api, snapshots
+from . import rendering, storage, course_api, snapshots, history
 from .graphics import png
 from .models import Course, Hole, Project, Tee, Video, Style, Overlay, totals, uid
 from typing import Literal
@@ -49,7 +49,7 @@ async def local_only(request: Request, call_next):
 
 
 def summary(p: Project) -> dict:
-    return {'project':p.model_dump(), 'overrides':round_overrides(p), 'totals':{'front':totals(p.round.holes[:9]), 'back':totals(p.round.holes[9:]), 'all':totals(p.round.holes)}}
+    return {'history':history.status(p.id), 'project':p.model_dump(), 'overrides':round_overrides(p), 'totals':{'front':totals(p.round.holes[:9]), 'back':totals(p.round.holes[9:]), 'all':totals(p.round.holes)}}
 
 
 def round_overrides(p: Project) -> list[str]:
@@ -88,6 +88,46 @@ class NewProject(BaseModel):
 @app.post('/api/v1/projects',status_code=201)
 def create_project(body: NewProject):
     return summary(storage.create(Project(name=body.name)))
+
+
+class ProjectRemoval(BaseModel):
+    revision: int = Field(ge=0)
+    confirm_delete: bool = False
+
+
+class ProjectRevision(BaseModel):
+    revision: int = Field(ge=0)
+
+
+class HistoryAction(ProjectRevision):
+    scope: Literal['round','shot','design']
+    action: Literal['undo','redo','reset']
+    confirm_reset: bool = False
+
+
+@app.get('/api/v1/projects-trash')
+def list_trash():
+    return storage.trash_projects()
+
+
+@app.delete('/api/v1/projects/{pid}')
+def delete_project(pid: str, body: ProjectRemoval):
+    if not body.confirm_delete:
+        raise HTTPException(409,'project_confirm_delete')
+    p = storage.trash(pid,body.revision)
+    return {'id':p.id,'revision':p.revision,'trashed':True}
+
+
+@app.post('/api/v1/projects/{pid}/restore')
+def restore_project(pid: str, body: ProjectRevision):
+    return summary(storage.trash(pid,body.revision,restore=True))
+
+
+@app.post('/api/v1/projects/{pid}/history')
+def edit_history(pid: str, body: HistoryAction):
+    if body.action == 'reset' and not body.confirm_reset:
+        raise HTTPException(409,'history_confirm_reset')
+    return summary(history.perform(pid,body.revision,body.scope,body.action))
 
 
 @app.get('/api/v1/projects/{pid}')
