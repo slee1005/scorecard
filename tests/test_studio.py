@@ -159,7 +159,8 @@ def test_real_export_audio_timing_and_graphics(client,tmp_path):
     p=r.json()['project'];assert p['video']['has_audio']
     s=Shot(hole=1,number=7,start=.5,end=1.5)
     o=Overlay(shot_id=s.id,start=.5,end=1.5,style=Style(background="#122d24",color="#f4f8e8",accent="#b6d87d",opacity=.7,overlay_opacity=.6))
-    p['shots']=[s.model_dump()];p['overlays']=[o.model_dump()]
+    card=Overlay(type='full',start=.5,end=1.5,style=Style(x=.04,y=.04,width=.50,height=.56,background='#f5f1e8',color='#20312d',accent='#166b59',overlay_opacity=.8))
+    p['shots']=[s.model_dump()];p['overlays']=[o.model_dump(),card.model_dump()]
     p=client.put('/api/v1/projects/'+p['id'],json=p).json()['project']
     r=client.post(f"/api/v1/projects/{p['id']}/exports",json={'revision':p['revision'],'quality':'high','resolution':'source'})
     assert r.status_code==202,r.text
@@ -185,8 +186,9 @@ def test_real_export_audio_timing_and_graphics(client,tmp_path):
     assert ImageChops.difference(before,during).getbbox() is not None
     # Exact overlay composition against source at the same resolution, allowing H.264 loss.
     expected=before.convert('RGBA')
-    panel=graphics.panel(Project.model_validate(p),o).resize((round(o.style.width*480),round(o.style.height*270)))
-    expected.alpha_composite(panel,(round(o.style.x*480),round(o.style.y*270)))
+    for overlay in (o,card):
+        panel=graphics.panel(Project.model_validate(p),overlay).resize((round(overlay.style.width*480),round(overlay.style.height*270)))
+        expected.alpha_composite(panel,(round(overlay.style.x*480),round(overlay.style.y*270)))
     from PIL import ImageStat
     difference=ImageStat.Stat(ImageChops.difference(expected.convert('RGB'),during)).mean
     assert max(difference)<6

@@ -1520,3 +1520,86 @@ dialog p {
     flex-wrap: wrap;
   }
 }
+
+/* The editable value and its golf symbol share one fixed square. */
+.scorecard-panel {
+  background: linear-gradient(145deg, #112532, #101c26);
+  border-color: #29424e;
+  border-radius: 12px;
+}
+.scorecard-panel h4 {
+  color: #b6d5dd;
+  letter-spacing: 0.6px;
+  font-size: 12px;
+}
+.score-table thead {
+  background: #142b37;
+}
+.score-table thead th {
+  height: 40px;
+  color: #9ac8d1;
+}
+.score-table tbody tr:last-child {
+  background: #11222e;
+}
+.score-table tbody tr:last-child td {
+  height: 51px;
+}
+.score-table .score-entry {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: auto;
+  color: #edf7fa;
+}
+.score-table .score-entry input {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  text-align: center;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  box-shadow: none;
+  line-height: normal;
+  margin: 0;
+}
+.score-table .score-entry::before,
+.score-table .score-entry::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+.score-table .score-entry.birdie::before,
+.score-table .score-entry.eagle::before {
+  border: 1.5px solid #56cdbd;
+  border-radius: 50%;
+}
+.score-table .score-entry.eagle::after {
+  inset: 5px;
+  border: 1px solid #56cdbd;
+  border-radius: 50%;
+}
+.score-table .score-entry.bogey::before,
+.score-table .score-entry.double::before {
+  border: 1.5px solid #edaaa2;
+}
+.score-table .score-entry.double::after {
+  inset: 5px;
+  border: 1px solid #edaaa2;
+}
+.score-table .score-entry:focus-within {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}

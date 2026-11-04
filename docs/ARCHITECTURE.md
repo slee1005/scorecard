@@ -45,3 +45,12 @@ Use a temporary `GVS_HOME`; never point tests or synthetic uploads at real user 
 `Shot.number` is an optional 1–99 display override. Missing/null retains ordinal numbering within each hole; it does not alter other shots, list order or timestamps. Reordering never changes a manual override. The web and native entry UI persist this field, and `graphics.panel` uses the same server numbering helper.
 
 `Style.overlay_opacity` defaults to 1 for old projects and presets. The web exposes the inverse percentage as whole-popup transparency. Shared panel rendering multiplies the final alpha channel, including text, accent and score indicators. Existing `Style.opacity` remains background-only alpha. Theme presets replace only three colors, leaving timing, geometry, both alpha settings and fonts intact.
+
+
+## Broadcast rendering and centered score marks
+
+The shot template reads player, entered-round cumulative relative score, hole/par/yardage and manual-or-auto shot number. Its lower strip shows club and remaining yards. Round score is the entered-hole total already used by the score editor; it does not infer unrecorded strokes or the completion time of a hole. Minimal graphics retain individual shot distance.
+
+Full cards have two nine-hole sections; front/back cards have one. All label/data rows share nine fixed column centers. `score_symbol` uses a common center for the circle/square and the digit. `centered_text` uses cached font-mask ink bounds (including bearings), not font advance/line metrics; line-metric centering visibly shifts dashes and some digits. No raster preview/export paths diverge.
+
+New overlay geometry preserves the component's design aspect inside the source frame. Existing projects keep their saved geometry and colors. The explicit recommended-layout action changes only geometry; applying colors to all graphics changes only the existing three color fields. No model migration or API contract change is required. The editable web table uses a fixed square wrapper with centered input and concentric pseudo-element marks, keeping input borders and focus rings independent.

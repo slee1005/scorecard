@@ -17,7 +17,9 @@ This status distinguishes working desktop implementation from native preparation
 | Actual FFmpeg MP4/H.264/AAC export + progress/download | Implemented and tested with synthetic audio/video |
 | Course library search, multi-tee/category selection | Saved local library plus explicit GolfCourseAPI online name search/import |
 | GolfCourseAPI key settings and imports | Implemented; local secret settings, 24-hour cache, exact tee/category/hole mapping; live user-key validation pending |
-| Manual shot numbers and popup themes/transparency | Implemented in shared preview/export; blank numbers retain automatic behavior |
+| Manual shot numbers and popup themes/transparency | Broadcast name/score/hole/yardage/large-shot popup, club/remaining strip, six themes and shared preview/export |
+| Modern 18-hole scorecard | Two nine-hole sections; actual digit ink centered within single/double circle/square indicators |
+| Aspect-aware layout presets | New cards fit the source aspect; explicit recommended-layout action preserves old projects until selected |
 | Source snapshots and round override detection | Implemented |
 | Authorized JSON/CSV import and reference image/PDF upload | Implemented; no OCR |
 | Live USGA search/API | Not implemented: permission/provider integration required |
@@ -34,11 +36,12 @@ This status distinguishes working desktop implementation from native preparation
 
 ## Verification evidence
 
-- Backend suite: 35 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
+- Backend suite: 69 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
 - Existing adjacent ShotTracer suite: 92 tests passed; source was not edited.
 - Browser QA uses a temporary data home: Korean workspace render, real keyboard round entry/autosave, synthetic video upload, shot creation, preview graphics and real export submission/download readiness.
 - GolfCourseAPI integration tests use synthetic responses; no real API key was supplied. Credential redaction, auth/rate-limit/network errors, caching, refresh and snapshot integrity are covered.
-- JavaScript suite: 2 tests for manual numbering and color themes preserving alpha/position.
+- JavaScript suite: 4 tests for manual numbering, theme preservation, portrait/landscape recommended layouts and score classes.
+- Raster tests verify digit/marker centers across sans/serif/mono, including two-digit scores and dashes. The real export test overlays the broadcast shot and modern full card together with audio.
 - Source and mobile lockfiles are retained for reproducibility. See README commands for rerunning validation.
 
 ## Next development milestones

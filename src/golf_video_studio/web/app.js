@@ -1,6 +1,8 @@
 import { t, lang, setLang } from "./i18n.js";
 import {
   THEMES,
+  recommendedGeometry,
+  scoreKind,
   currentTheme,
   shotNumber as displayShotNumber,
 } from "./editor-data.js";
@@ -64,13 +66,8 @@ const clubs = [
   "Putter",
 ];
 const style = () => ({
-  x: 0.04,
-  y: 0.68,
-  width: 0.42,
-  height: 0.25,
-  background: "#101c26",
-  color: "#ffffff",
-  accent: "#29c4b5",
+  ...recommendedGeometry("shot", S.p?.video),
+  ...THEMES.broadcast,
   opacity: 0.9,
   overlay_opacity: 1,
   radius: 14,
@@ -171,6 +168,8 @@ function button(action, label, css = "", extra = "") {
   return `<button class="${css}" data-action="${action}" ${extra}>${label}</button>`;
 }
 function field(label, key, value, type = "text", extra = "", scope = "round") {
+  if (type === "number" && typeof value === "number")
+    value = Number(value.toFixed(4));
   return `<label class="field"><span>${t(label)}</span><input type="${type}" data-scope="${scope}" data-key="${key}" value="${esc(value)}" ${extra}></label>`;
 }
 function select(label, key, value, options, scope) {
@@ -303,7 +302,7 @@ function renderInspector() {
     const o = p.overlays.find((o) => o.id === S.overlay);
     if (o) {
       const s = o.style;
-      html = `${select("colorTheme", "theme", currentTheme(s), [["custom", t("themeCustom")], ...Object.keys(THEMES).map((k) => [k, t("theme_" + k)])], "theme")}${select(
+      html = `${select("colorTheme", "theme", currentTheme(s), [["custom", t("themeCustom")], ...Object.keys(THEMES).map((k) => [k, t("theme_" + k)])], "theme")}${button("apply-theme-all", t("applyThemeAll"), "wide subtle")}${select(
         "type",
         "type",
         o.type,
@@ -318,7 +317,7 @@ function renderInspector() {
               ["back", t("backType")],
             ],
         "overlay",
-      )}<div class="field-grid">${field("start", "start", o.start, "number", 'min="0" step=".01"', "overlay")}${field("end", "end", o.end, "number", 'min=".01" step=".01"', "overlay")}</div><div class="color-fields">${field("textColor", "color", s.color, "color", "", "style")}${field("background", "background", s.background, "color", "", "style")}${field("accent", "accent", s.accent, "color", "", "style")}</div>${field("opacity", "opacity", s.opacity, "range", 'min="0" max="1" step=".01"', "style")}<label class="field"><span>${t("transparency")} <output id="transparency-value">${Math.round((1 - (s.overlay_opacity ?? 1)) * 100)}%</output></span><input type="range" data-scope="style" data-key="transparency" min="0" max="100" step="1" value="${Math.round((1 - (s.overlay_opacity ?? 1)) * 100)}" aria-label="${t("transparency")}"></label><p class="inspector-note">${t("transparencyHelp")}</p><h4>${t("position")}</h4><div class="field-grid">${["x", "y", "width", "height"].map((k) => field(k, k, s[k], "number", 'min="0" max="1" step=".01"', "style")).join("")}${field("fontSize", "font_size", s.font_size, "number", 'min="12" max="48"', "style")}${field("radius", "radius", s.radius, "number", 'min="0" max="60"', "style")}</div>${select(
+      )}${button("fit-layout", t("fitLayout"), "wide outline")}<div class="field-grid">${field("start", "start", o.start, "number", 'min="0" step=".01"', "overlay")}${field("end", "end", o.end, "number", 'min=".01" step=".01"', "overlay")}</div><div class="color-fields">${field("textColor", "color", s.color, "color", "", "style")}${field("background", "background", s.background, "color", "", "style")}${field("accent", "accent", s.accent, "color", "", "style")}</div>${field("opacity", "opacity", s.opacity, "range", 'min="0" max="1" step=".01"', "style")}<label class="field"><span>${t("transparency")} <output id="transparency-value">${Math.round((1 - (s.overlay_opacity ?? 1)) * 100)}%</output></span><input type="range" data-scope="style" data-key="transparency" min="0" max="100" step="1" value="${Math.round((1 - (s.overlay_opacity ?? 1)) * 100)}" aria-label="${t("transparency")}"></label><p class="inspector-note">${t("transparencyHelp")}</p><h4>${t("position")}</h4><div class="field-grid">${["x", "y", "width", "height"].map((k) => field(k, k, s[k], "number", 'min="0" max="1" step="any"', "style")).join("")}${field("fontSize", "font_size", s.font_size, "number", 'min="12" max="48"', "style")}${field("radius", "radius", s.radius, "number", 'min="0" max="60"', "style")}</div>${select(
         "font",
         "font",
         s.font,
@@ -435,17 +434,20 @@ function animate() {
   tick();
   if (!$("#video").paused) requestAnimationFrame(animate);
 }
-function scoreClass(h) {
-  if (h.par == null || h.score == null) return "";
-  return (
-    { "-2": "eagle", "-1": "birdie", 0: "par", 1: "bogey", 2: "double" }[
-      h.score - h.par
-    ] || (h.score < h.par ? "birdie" : "bogey")
-  );
-}
 function scoreTable(items, label) {
   const total = S.totals[label];
-  return `<div class="score-table-wrap"><table class="score-table"><thead><tr><th>${t("hole")}</th>${items.map((h) => `<th>${String(h.number).padStart(2, "0")}</th>`).join("")}<th>${t("total")}</th></tr></thead><tbody>${["par", "yardage", "score"].map((k) => `<tr><th>${t(k)}</th>${items.map((h) => `<td class="${k === "score" ? scoreClass(h) : ""}"><input aria-label="${t("hole")} ${h.number} ${t(k)}" data-hole="${h.number}" data-key="${k}" type="number" min="${k === "par" ? 3 : 1}" max="${k === "par" ? 6 : k === "score" ? 40 : 1000}" value="${h[k] ?? ""}" placeholder="—"></td>`).join("")}<td>${total[k] ?? "—"}</td></tr>`).join("")}</tbody></table></div>`;
+  const rows = ["par", "yardage", "score"]
+    .map((key) => {
+      const cells = items
+        .map((hole) => {
+          const input = `<input aria-label="${t("hole")} ${hole.number} ${t(key)}" data-hole="${hole.number}" data-key="${key}" type="number" min="${key === "par" ? 3 : 1}" max="${key === "par" ? 6 : key === "score" ? 40 : 1000}" value="${hole[key] ?? ""}" placeholder="—">`;
+          return `<td>${key === "score" ? `<span class="score-entry ${scoreKind(hole)}">${input}</span>` : input}</td>`;
+        })
+        .join("");
+      return `<tr><th scope="row">${t(key)}</th>${cells}<td>${total[key] ?? "—"}</td></tr>`;
+    })
+    .join("");
+  return `<div class="score-table-wrap"><table class="score-table"><thead><tr><th scope="col">${t("hole")}</th>${items.map((h) => `<th scope="col">${String(h.number).padStart(2, "0")}</th>`).join("")}<th scope="col">${t("total")}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function renderRound() {
   const p = S.p,
@@ -598,11 +600,8 @@ async function addCard() {
   const oid = id(),
     s = style();
   Object.assign(s, {
-    x: 0.04,
-    y: 0.04,
-    width: 0.92,
-    height: 0.26,
-    font_size: 22,
+    ...recommendedGeometry("full", S.p.video),
+    font_size: 24,
   });
   await change((p) =>
     p.overlays.push({
@@ -871,6 +870,24 @@ async function action(name, el) {
       render();
       break;
     }
+    case "apply-theme-all": {
+      const source = S.p.overlays.find((o) => o.id === S.overlay).style;
+      const colors = {
+        background: source.background,
+        color: source.color,
+        accent: source.accent,
+      };
+      await change((p) =>
+        p.overlays.forEach((o) => Object.assign(o.style, colors)),
+      );
+      break;
+    }
+    case "fit-layout":
+      await change((p) => {
+        const o = p.overlays.find((o) => o.id === S.overlay);
+        Object.assign(o.style, recommendedGeometry(o.type, p.video));
+      });
+      break;
     case "save-preset": {
       const key = prompt(t("presetName"));
       if (key)
