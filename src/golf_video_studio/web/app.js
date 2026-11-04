@@ -314,10 +314,51 @@ function resetDialog(scope) {
   );
 }
 async function showTrash() {
-  const items = await api("/projects-trash");
+  const [items, cleanup] = await Promise.all([
+    api("/projects-trash"),
+    api("/projects-trash/cleanup-status"),
+  ]);
+  S.trashItems = items;
+  S.trashCleanupPending = cleanup.pending;
   dialog(
-    `<div class="dialog-head"><h2>${t("projectTrash")}</h2>${button("close", "×", "icon")}</div><p>${t("trashHelp")}</p><div class="trash-list">${items.length ? items.map((p) => `<article class="trash-item"><div><strong>${esc(p.name)}</strong><small>${esc(new Date(p.deleted_at).toLocaleString(lang))}</small></div>${button("restore-project", t("restoreProject"), "outline", `data-id="${p.id}" data-revision="${p.revision}"`)}</article>`).join("") : `<p class="empty-note">${t("trashEmpty")}</p>`}</div>`,
+    `<div class="dialog-head"><h2>${t("projectTrash")}</h2>${button("close", "×", "icon")}</div><p>${t("trashHelp")}</p><div class="trash-list">${items.length ? items.map((p) => `<article class="trash-item"><div><strong>${esc(p.name)}</strong><small>${esc(new Date(p.deleted_at).toLocaleString(lang))}</small></div>${button("restore-project", t("restoreProject"), "outline", `data-id="${p.id}" data-revision="${p.revision}"`)}</article>`).join("") : `<p class="empty-note">${t("trashEmpty")}</p>`}</div>${cleanup.pending ? `<p role="status">${t("trashCleanupPending")}</p>` : ""}<div class="snapshot-actions">${button("empty-trash", t(items.length ? "emptyTrash" : cleanup.pending ? "retryTrashCleanup" : "emptyTrash"), "danger", items.length || cleanup.pending ? "" : "disabled")}</div>`,
   );
+}
+function confirmEmptyTrashDialog() {
+  S.emptyTrashDraft = (S.trashItems || []).map((p) => ({
+    id: p.id,
+    revision: p.revision,
+  }));
+  const items = S.trashItems || [];
+  $("#dialog").innerHTML =
+    `<div class="dialog-head"><h2>${t("emptyTrash")}</h2>${button("project-trash", "×", "icon")}</div><p class="trash-permanent-warning">${t("emptyTrashWarning")}</p><p>${t("emptyTrashCount")}: <strong>${items.length}</strong></p><ul class="trash-confirm-list">${items.map((p) => `<li>${esc(p.name)}</li>`).join("")}</ul>${S.trashCleanupPending ? `<p>${t("trashCleanupPending")}</p>` : ""}<p id="empty-trash-error" role="alert" hidden></p><div class="snapshot-actions">${button("project-trash", t("cancel"), "outline")}${button("confirm-empty-trash", t("permanentlyDelete"), "danger")}</div>`;
+}
+async function emptyTrash() {
+  const buttons = $$("#dialog button");
+  buttons.forEach((b) => (b.disabled = true));
+  try {
+    const result = await api("/projects-trash/empty", {
+      method: "POST",
+      body: JSON.stringify({
+        projects: S.emptyTrashDraft,
+        confirm_permanent_delete: true,
+      }),
+    });
+    S.emptyTrashDraft = null;
+    $("#dialog").close();
+    await showTrash();
+    notice(
+      t(result.pending_cleanup ? "trashCleanupPending" : "trashEmptied"),
+      Boolean(result.pending_cleanup),
+    );
+  } catch (e) {
+    buttons.forEach((b) => (b.disabled = false));
+    const target = $("#empty-trash-error");
+    if (target) {
+      target.hidden = false;
+      target.textContent = e.message;
+    } else throw e;
+  }
 }
 async function deleteCurrentProject() {
   await S.chain;
@@ -868,6 +909,12 @@ async function action(name, el) {
       break;
     case "project-trash":
       await showTrash();
+      break;
+    case "empty-trash":
+      confirmEmptyTrashDialog();
+      break;
+    case "confirm-empty-trash":
+      await emptyTrash();
       break;
     case "restore-project":
       await S.chain;

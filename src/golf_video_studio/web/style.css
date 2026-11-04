@@ -1730,3 +1730,20 @@ dialog p {
   margin-top: 6px;
   color: var(--muted);
 }
+
+.trash-permanent-warning {
+  border: 1px solid #98604e;
+  background: #321d20;
+  color: #ffd0bc;
+  padding: 14px;
+  border-radius: 10px;
+  line-height: 1.7;
+}
+.trash-confirm-list {
+  max-height: 30vh;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+#empty-trash-error {
+  color: #ffba9e;
+}

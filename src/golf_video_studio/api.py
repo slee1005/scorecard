@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError, SecretStr, Field
 
-from . import rendering, storage, course_api, snapshots, history
+from . import rendering, storage, course_api, snapshots, history, purge
 from .graphics import png
 from .models import Course, Hole, Project, Tee, Video, Style, Overlay, totals, uid
 from typing import Literal
@@ -25,6 +25,7 @@ WEB = Path(__file__).parent/'web'
 
 @asynccontextmanager
 async def lifespan(app):
+    purge.cleanup()
     storage.migrate_snapshots()
     rendering.recover()
     yield
@@ -108,6 +109,31 @@ class HistoryAction(ProjectRevision):
 @app.get('/api/v1/projects-trash')
 def list_trash():
     return storage.trash_projects()
+
+
+class TrashTarget(BaseModel):
+    id: str = Field(pattern=r'^[a-f0-9]{32}$')
+    revision: int = Field(ge=0)
+
+
+class EmptyTrash(BaseModel):
+    projects: list[TrashTarget] = Field(max_length=10000)
+    confirm_permanent_delete: bool = False
+
+
+@app.get('/api/v1/projects-trash/cleanup-status')
+def trash_cleanup_status():
+    return {'pending':purge.pending()}
+
+
+@app.post('/api/v1/projects-trash/empty')
+def empty_trash(body: EmptyTrash):
+    if not body.confirm_permanent_delete:
+        raise HTTPException(409,'trash_confirm_empty')
+    expected = {p.id:p.revision for p in body.projects}
+    if len(expected) != len(body.projects):
+        raise HTTPException(422,'trash_changed')
+    return purge.empty(expected)
 
 
 @app.delete('/api/v1/projects/{pid}')

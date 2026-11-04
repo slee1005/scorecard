@@ -87,6 +87,58 @@
         }
       }
     },
+    "/api/v1/projects-trash/cleanup-status": {
+      "get": {
+        "summary": "Trash Cleanup Status",
+        "operationId": "trash_cleanup_status_api_v1_projects_trash_cleanup_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects-trash/empty": {
+      "post": {
+        "summary": "Empty Trash",
+        "operationId": "empty_trash_api_v1_projects_trash_empty_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyTrash"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{pid}": {
       "delete": {
         "summary": "Delete Project",
@@ -1275,6 +1327,28 @@
           "tees"
         ],
         "title": "Course"
+      },
+      "EmptyTrash": {
+        "properties": {
+          "projects": {
+            "items": {
+              "$ref": "#/components/schemas/TrashTarget"
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "title": "Projects"
+          },
+          "confirm_permanent_delete": {
+            "type": "boolean",
+            "title": "Confirm Permanent Delete",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "projects"
+        ],
+        "title": "EmptyTrash"
       },
       "Export": {
         "properties": {
@@ -2619,6 +2693,26 @@
           "name"
         ],
         "title": "Tee"
+      },
+      "TrashTarget": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "revision"
+        ],
+        "title": "TrashTarget"
       },
       "ValidationError": {
         "properties": {

@@ -56,6 +56,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/projects-trash/cleanup-status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Trash Cleanup Status */
+    get: operations["trash_cleanup_status_api_v1_projects_trash_cleanup_status_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/projects-trash/empty": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Empty Trash */
+    post: operations["empty_trash_api_v1_projects_trash_empty_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/projects/{pid}": {
     parameters: {
       query?: never;
@@ -464,6 +498,16 @@ export interface components {
       updated_at: string;
       /** Tees */
       tees: components["schemas"]["Tee"][];
+    };
+    /** EmptyTrash */
+    EmptyTrash: {
+      /** Projects */
+      projects: components["schemas"]["TrashTarget"][];
+      /**
+       * Confirm Permanent Delete
+       * @default false
+       */
+      confirm_permanent_delete: boolean;
     };
     /** Export */
     Export: {
@@ -973,6 +1017,13 @@ export interface components {
       /** Holes */
       holes?: components["schemas"]["Hole"][];
     };
+    /** TrashTarget */
+    TrashTarget: {
+      /** Id */
+      id: string;
+      /** Revision */
+      revision: number;
+    };
     /** ValidationError */
     ValidationError: {
       /** Location */
@@ -1099,6 +1150,59 @@ export interface operations {
         };
         content: {
           "application/json": unknown;
+        };
+      };
+    };
+  };
+  trash_cleanup_status_api_v1_projects_trash_cleanup_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  empty_trash_api_v1_projects_trash_empty_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmptyTrash"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

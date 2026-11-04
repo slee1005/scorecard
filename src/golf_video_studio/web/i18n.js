@@ -1,4 +1,20 @@
 const en = {
+  emptyTrash: "Empty trash",
+  emptyTrashWarning:
+    "This permanently deletes every project listed below, including its original video, reference files, exports, scorecard snapshots and edit history. Restore and UNDO will no longer be available.",
+  emptyTrashCount: "Projects to permanently delete",
+  permanentlyDelete: "Permanently delete",
+  trashEmptied:
+    "Trash emptied. Project files and history were permanently deleted.",
+  trashCleanupPending:
+    "Some files from previously deleted projects still await cleanup. Retry file cleanup or restart the app.",
+  retryTrashCleanup: "Retry file cleanup",
+  trash_changed:
+    "The trash contents changed. Cancel and reopen trash to review the current projects before deleting.",
+  trash_confirm_empty: "Confirm permanent deletion first.",
+  trash_storage_failure:
+    "File cleanup could not be started. Check file permissions and try again.",
+
   undoLabel: "UNDO",
   redoLabel: "REDO",
   resetLabel: "RESET",
@@ -28,7 +44,7 @@ const en = {
   projectRestored: "Project restored",
   restoreProject: "Restore",
   trashHelp:
-    "Deleted projects stay on this device with their files. Restore a project to edit it again. No files are permanently deleted.",
+    "Deleted projects stay on this device with their files. Restore a project to edit it again. Empty trash permanently deletes these projects and their files after confirmation.",
   trashEmpty: "No deleted projects.",
   history_dependency:
     "Another section now depends on this edit, or the restored layout would collide. Undo the related edit first. Nothing was changed.",
@@ -350,6 +366,22 @@ const en = {
   untitled: "Untitled round",
 };
 const ko = {
+  emptyTrash: "휴지통 비우기",
+  emptyTrashWarning:
+    "아래 모든 프로젝트의 원본 영상·참고 파일·출력 파일·스코어카드 스냅샷·편집 기록을 영구 삭제합니다. 삭제 후에는 복원하거나 UNDO할 수 없습니다.",
+  emptyTrashCount: "영구 삭제할 프로젝트 수",
+  permanentlyDelete: "영구 삭제",
+  trashEmptied:
+    "휴지통을 비웠습니다. 프로젝트 파일과 편집 기록을 영구 삭제했습니다.",
+  trashCleanupPending:
+    "이전에 영구 삭제한 프로젝트의 일부 파일 정리가 남아 있습니다. 파일 정리를 다시 시도하거나 앱을 재시작하세요.",
+  retryTrashCleanup: "파일 정리 다시 시도",
+  trash_changed:
+    "휴지통 목록이 변경되었습니다. 취소 후 휴지통을 다시 열어 삭제 대상을 확인하세요.",
+  trash_confirm_empty: "영구 삭제를 먼저 확인하세요.",
+  trash_storage_failure:
+    "파일 정리를 시작하지 못했습니다. 파일 권한을 확인한 후 다시 시도하세요.",
+
   undoLabel: "UNDO",
   redoLabel: "REDO",
   resetLabel: "RESET",
@@ -379,7 +411,7 @@ const ko = {
   projectRestored: "프로젝트를 복원했습니다",
   restoreProject: "복원",
   trashHelp:
-    "삭제한 프로젝트와 파일은 이 기기에 남습니다. 복원하면 다시 편집할 수 있으며 파일을 영구 삭제하지 않습니다.",
+    "삭제한 프로젝트와 파일은 이 기기에 남습니다. 복원하면 다시 편집할 수 있으며 휴지통 비우기에서 확인하면 프로젝트와 파일을 영구 삭제합니다.",
   trashEmpty: "삭제한 프로젝트가 없습니다.",
   history_dependency:
     "다른 영역의 편집이 이 변경에 의존하거나 복원할 배치가 겹칩니다. 관련 편집을 먼저 취소하세요. 데이터는 변경하지 않았습니다.",

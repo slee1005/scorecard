@@ -17,7 +17,7 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 88 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 95 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -130,7 +130,7 @@ The Expo Videos screen uses the same revision-checked capture/replace APIs, conf
 
 ## Project trash and edit history
 
-Use **Delete project** in the top bar to move the selected project to **Project trash** after confirmation. Restore it from the sidebar trash button. Source video, exported files, scorecard snapshots and edit history remain on this device; this action does not reclaim disk space. Projects with queued/running exports cannot be deleted. Trashed projects are hidden from the workspace and reject editing, playback and new exports until restored. Deleting the last active project opens a new blank workspace.
+Use **Delete project** in the top bar to move the selected project to **Project trash** after confirmation. Restore it from the sidebar trash button. Source video, exported files, scorecard snapshots and edit history remain on this device; this action does not reclaim disk space. **Empty trash** permanently removes every listed project, original video, reference file, export, scorecard snapshot and edit history after a second confirmation. It cannot be restored or undone. The dialog shows project names/count; if trash contents change before confirmation the request is rejected for review. Projects with queued/running exports cannot be deleted. Trashed projects are hidden from the workspace and reject editing, playback and new exports until restored. Deleting the last active project opens a new blank workspace. Only trashed projects are eligible for permanent deletion; active projects, shared courses and API-key settings are preserved. If file locks delay cleanup, the UI shows a pending status and a retry button. Cleanup resumes after restart; pending cleanup must finish before disk space is fully reclaimed.
 
 Each **Round / Shot / Design** inspector tab has independent **UNDO / REDO / RESET** controls. The latest 100 edits per section are stored in SQLite and survive reloads and project switching. A new edit clears only that section's redo branch. Project naming, source video/reference uploads and provider key settings are outside this history. The controls operate on the whole section, including all shots or all graphic styles, rather than just the selected item.
 

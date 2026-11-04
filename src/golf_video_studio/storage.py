@@ -26,6 +26,7 @@ def connect():
     db.execute("PRAGMA journal_mode=WAL")
     db.executescript("""
     CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, revision INTEGER NOT NULL, data TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS purge_queue (id TEXT PRIMARY KEY);
     CREATE TABLE IF NOT EXISTS project_trash (id TEXT PRIMARY KEY, deleted_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS edit_history (seq INTEGER PRIMARY KEY AUTOINCREMENT, pid TEXT NOT NULL, scope TEXT NOT NULL, data TEXT NOT NULL, applied INTEGER NOT NULL);
     CREATE INDEX IF NOT EXISTS history_project_scope ON edit_history(pid,scope,seq);
