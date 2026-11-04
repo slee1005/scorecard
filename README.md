@@ -17,7 +17,7 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 112 backend tests and 5 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 122 backend tests and 5 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -43,7 +43,7 @@ Open [http://127.0.0.1:8775](http://127.0.0.1:8775). Use `--port 8780` for anoth
 
 **Default layout:** new shot popups use X **0.75**, Y **0.03**, width **0.2**, height **0.15**; new full/front/back scorecards use X **0.24**, Y **0.2**, width **0.504**, height **0.56**. Both use font size **30**, corner radius **20**, sans font, visible background and course information. Coordinates are normalized to the video frame and remain the same in portrait/landscape. Web/native creation and Design RESET use these defaults. Saved styles are retained; the separate recommended-layout action still fits the design aspect to the source frame.
 
-**Broadcast graphics:** shot popups now show the round player name, relative-to-par score through the holes before the shot’s current hole, hole/par, total hole yardage, a large shot number, and a lower strip with club and remaining distance. Total hole yardage comes from the selected hole; it is separate from the individual shot distance. The current and later holes are excluded even when their scores have already been entered. Hole 1 starts at E; any missing prior-hole score/par leaves cumulative score unknown. Missing hole par/yardage stays unknown. The minimal template continues to show individual shot distance.
+**Broadcast graphics:** shot popups now show the round player name, relative-to-par score through the holes before the shot’s current hole, hole/par, large remaining distance, a large shot number, and a lower strip with club and total hole yardage. The broadcast layout enlarges HOLE, PAR, LEFT, TO PAR and club labels/text; the overall font-size control scales them together. Total hole yardage comes from the selected hole; it is separate from the individual shot distance. The current and later holes are excluded even when their scores have already been entered. Hole 1 starts at E; any missing prior-hole score/par leaves cumulative score unknown. Missing hole par/yardage stays unknown. The minimal template continues to show individual shot distance.
 
 ![Broadcast shot popup — synthetic example](docs/images/broadcast-shot.png)
 

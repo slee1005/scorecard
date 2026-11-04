@@ -117,3 +117,38 @@ def test_missing_prior_values_leave_cumulative_shot_score_unknown(field):
     assert score_before_hole(p,5) is None
     assert score_before_hole(p,1)==0
     assert score_before_hole(p,2)==0
+
+
+def test_broadcast_places_remaining_above_total_and_enlarges_requested_text(monkeypatch):
+    p=project();values={}
+    original=graphics.centered_text
+    def record(draw,box,value,size,*args,**kwargs):
+        values[str(value)]=(box,size)
+        return original(draw,box,value,size,*args,**kwargs)
+    monkeypatch.setattr(graphics,'centered_text',record)
+    graphics.panel(p,Overlay(shot_id=p.shots[0].id,style=Style(width=.5,height=.3,y=.05)))
+    remaining,remaining_size=values['145 YDS'];total,total_size=values['405 YDS']
+    assert remaining[3]<total[1] and remaining_size>total_size
+    assert values['LEFT'][0][3]<remaining[1]
+    assert values['TOTAL'][0][3]<total[1]
+    # At the design scale these requests are substantially larger than old 10–11px labels.
+    k=min(.5*1920/620,.3*1080/254)
+    for label,minimum in [('HOLE',20),('LEFT',20),('TO PAR',18),('PAR 4',22),('CLUB',18),('7 IRON',28)]:
+        assert values[label][1]>=minimum*k-.01
+
+
+@pytest.mark.parametrize('family',['sans','serif','mono'])
+@pytest.mark.parametrize('font_size',[12,30,48])
+def test_broadcast_text_ink_stays_inside_its_assigned_regions(monkeypatch,family,font_size):
+    p=project();p.round.player='A LONG PLAYER NAME';p.shots[0].club='3 Hybrid';p.shots[0].remaining=1500
+    original=graphics.centered_text
+    def check(draw,box,value,size,color,font_family='sans',align='center'):
+        layer=Image.new('RGBA',(1200,1200))
+        original(ImageDraw.Draw(layer),box,value,size,color,font_family,align)
+        bounds=layer.getbbox()
+        if bounds:
+            assert bounds[0]>=box[0]-1 and bounds[1]>=box[1]-1
+            assert bounds[2]<=box[2]+2 and bounds[3]<=box[3]+2
+        return original(draw,box,value,size,color,font_family,align)
+    monkeypatch.setattr(graphics,'centered_text',check)
+    graphics.panel(p,Overlay(shot_id=p.shots[0].id,style=Style(x=.75,y=.03,width=.2,height=.15,font=family,font_size=font_size,radius=20)))

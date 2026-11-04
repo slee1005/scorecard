@@ -150,28 +150,29 @@ def _shot(c: Canvas, p: Project, overlay: Overlay):
     c.draw.rectangle(c.box(0, 0, 1, .018), fill=c.accent)
     c.background(c.box(.81, .018, 1, .29), c.accent)
     c.text(c.box(.035, .045, .775, .255), p.round.player or 'PLAYER', 31 * k * text_scale, align='left')
-    c.text(c.box(.82, .04, .99, .10), 'TO PAR', 10 * k, c.accent_ink)
-    c.text(c.box(.82, .11, .99, .26), relative_text(score_before_hole(p,shot.hole)), 36 * k * text_scale, c.accent_ink)
-    c.background(c.box(0, .29, 1, .73), c.alt)
-    c.background(c.box(.78, .29, 1, .73), c.deep)
+    c.text(c.box(.82, .035, .99, .115), 'TO PAR', 18 * k * text_scale, c.accent_ink)
+    c.text(c.box(.82, .13, .99, .265), relative_text(score_before_hole(p,shot.hole)), 36 * k * text_scale, c.accent_ink)
+    c.background(c.box(0, .29, 1, .70), c.alt)
+    c.background(c.box(.78, .29, 1, .70), c.deep)
     for x in (.24, .78):
-        c.draw.line((x * c.w, c.h * .32, x * c.w, c.h * .70), fill=c.line, width=max(1, round(k)))
-    c.text(c.box(.035, .33, .21, .39), 'HOLE', 11 * k, c.muted, 'left')
-    c.text(c.box(.035, .42, .21, .61), f'{shot.hole:02d}', 42 * k * text_scale, align='left')
-    c.text(c.box(.035, .64, .21, .70), f'PAR {show(hole.par)}', 11 * k, c.muted, 'left')
-    c.text(c.box(.28, .33, .74, .39), 'TOTAL YARDS', 11 * k, c.muted, 'left')
-    c.text(c.box(.28, .43, .74, .65), f'{show(hole.yardage)} YDS', 43 * k * text_scale, align='left')
-    c.text(c.box(.80, .33, .98, .39), 'SHOT', 11 * k, c.accent)
-    c.text(c.box(.80, .42, .98, .68), number, 62 * k * text_scale, c.accent)
-    # The lower strip separates the club and remaining distance from total hole length.
-    c.draw.line((0, c.h * .73, c.w, c.h * .73), fill=c.line, width=max(1, round(k)))
-    c.text(c.box(.035, .77, .18, .85), 'CLUB', 10 * k, c.muted, 'left')
-    c.text(c.box(.20, .76, .48, .87), shot.club.upper(), 22 * k * text_scale, align='right')
-    c.text(c.box(.53, .77, .64, .85), 'LEFT', 10 * k, c.muted, 'left')
+        c.draw.line((x * c.w, c.h * .32, x * c.w, c.h * .68), fill=c.line, width=max(1, round(k)))
+    c.text(c.box(.035, .32, .21, .405), 'HOLE', 20 * k * text_scale, c.muted, 'left')
+    c.text(c.box(.035, .42, .21, .59), f'{shot.hole:02d}', 42 * k * text_scale, align='left')
+    c.text(c.box(.035, .605, .21, .695), f'PAR {show(hole.par)}', 22 * k * text_scale, c.muted, 'left')
+    c.text(c.box(.28, .32, .74, .405), 'LEFT', 20 * k * text_scale, c.muted, 'left')
     left = f'{shot.remaining:g} YDS' if shot.remaining is not None else '— YDS'
-    c.text(c.box(.66, .76, .965, .87), left, 23 * k * text_scale, c.accent, 'right')
+    c.text(c.box(.28, .43, .74, .68), left, 43 * k * text_scale, align='left')
+    c.text(c.box(.80, .32, .98, .405), 'SHOT', 20 * k * text_scale, c.accent)
+    c.text(c.box(.80, .42, .98, .69), number, 62 * k * text_scale, c.accent)
+    # Match the approved broadcast mockup: remaining distance is primary;
+    # the lower strip pairs an enlarged club with the full hole yardage.
+    c.draw.line((0, c.h * .70, c.w, c.h * .70), fill=c.line, width=max(1, round(k)))
+    c.text(c.box(.035, .72, .48, .80), 'CLUB', 18 * k * text_scale, c.muted, 'left')
+    c.text(c.box(.035, .82, .48, .935), shot.club.upper(), 28 * k * text_scale, align='left')
+    c.text(c.box(.53, .72, .965, .80), 'TOTAL', 18 * k * text_scale, c.muted, 'right')
+    c.text(c.box(.53, .82, .965, .935), f'{show(hole.yardage)} YDS', 28 * k * text_scale, align='right')
     if c.s.show_course:
-        c.text(c.box(.035, .91, .965, .97), ' · '.join(s for s in (p.round.course, p.round.tee) if s), 10 * k, c.muted, 'left')
+        c.text(c.box(.035, .955, .965, .995), ' · '.join(s for s in (p.round.course, p.round.tee) if s), 10 * k, c.muted, 'left')
 
 
 def _minimal(c: Canvas, p: Project, overlay: Overlay):

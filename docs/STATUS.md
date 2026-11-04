@@ -21,7 +21,7 @@ This status distinguishes working desktop implementation from native preparation
 | Actual FFmpeg MP4/H.264/AAC export + progress/download | Implemented and tested with synthetic audio/video |
 | Course library search, multi-tee/category selection | Saved local library plus explicit GolfCourseAPI online name search/import |
 | GolfCourseAPI key settings and imports | Implemented; local secret settings, 24-hour cache, exact tee/category/hole mapping; live user-key validation pending |
-| Manual shot numbers and popup themes/transparency | Broadcast name/prior-hole-score/hole/yardage/large-shot popup, club/remaining strip, six themes and shared preview/export |
+| Manual shot numbers and popup themes/transparency | Broadcast name/prior-hole-score/hole/yardage/large-shot popup, large remaining distance + club/total strip, enlarged labels, six themes and shared preview/export |
 | Immutable scorecard timeline snapshots | Shared model/rendering; 5/9/18-hole captures, confirmed replacement/history and real three-card MP4 pixel tests; web confirmation/immutable-data/replacement/history QA verified; native device testing pending |
 | Modern 18-hole scorecard | Two nine-hole sections; actual digit ink centered within single/double circle/square indicators |
 | Default overlay layouts | Requested shot/card coordinates, font 30 and radius 20; web/native creation + undoable Design RESET; saved styles retained |
@@ -42,7 +42,7 @@ This status distinguishes working desktop implementation from native preparation
 
 ## Verification evidence
 
-- Backend suite: 112 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
+- Backend suite: 122 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
 - Existing adjacent ShotTracer suite: 92 tests passed; source was not edited.
 - Browser QA uses a temporary data home: Korean workspace render, real keyboard round entry/autosave, synthetic video upload, shot creation, preview graphics and real export submission/download readiness.
 - GolfCourseAPI integration tests use synthetic responses; no real API key was supplied. Credential redaction, auth/rate-limit/network errors, caching, refresh and snapshot integrity are covered.
@@ -54,6 +54,7 @@ This status distinguishes working desktop implementation from native preparation
 - Empty-trash browser QA: isolated temporary projects verified the enabled button, exact project name/count, irreversible-delete warning and Cancel path; permanent removal/failure/restart checks ran only against pytest scratch data.
 - Selected-trash/prior-hole-score QA: checkbox and row actions confirmed only one named temporary target; Cancel preserved both trash items. A Hole 3 popup displayed -1 from Holes 1–2 despite entered current/future scores. The synthetic MP4 test uses the same prior-hole scoring path.
 - Default-layout browser QA: new shot fields matched (.75,.03,.2,.15), new card fields matched (.24,.2,.504,.56), both font 30/radius 20, and both panels appeared without collision on the same synthetic frame.
+- Approved broadcast distance swap: remaining yards occupy the primary cell; club and total yards occupy the lower strip. Raster tests cover enlarged label placement and ink bounds across three fonts at sizes 12/30/48; actual MP4 composition still matches the shared panel.
 - Source and mobile lockfiles are retained for reproducibility. See README commands for rerunning validation.
 
 ## Next development milestones
