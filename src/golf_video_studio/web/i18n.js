@@ -1,4 +1,61 @@
 const en = {
+  shotNumberLabel: "Shot number",
+  automatic: "Auto (leave blank)",
+  colorTheme: "Color theme",
+  themeCustom: "Custom colors",
+  theme_broadcast: "Broadcast",
+  theme_forest: "Forest",
+  theme_ocean: "Ocean",
+  theme_paper: "Paper",
+  theme_crimson: "Crimson",
+  transparency: "Overlay transparency",
+  transparencyHelp:
+    "0% keeps the graphic visible; 100% hides the entire popup. Panel opacity controls only its background.",
+  providerTitle: "GolfCourseAPI connection",
+  apiKey: "API key",
+  apiConfigured: "Key configured",
+  apiNotConfigured: "Key not set",
+  apiKeyHelp:
+    "Your key is saved only in local server settings, outside projects. It is sent only to GolfCourseAPI for explicit course requests. Never paste it into notes or shared JSON.",
+  apiKeyReplace: "Enter a new key to replace the saved key",
+  apiKeyPlaceholder: "Enter your GolfCourseAPI key",
+  saveApiKey: "Save API key",
+  removeApiKey: "Remove saved key",
+  getApiKey: "Get an API key",
+  apiEnvironment:
+    "GOLFCOURSE_API_KEY is set in the server environment. Change it there to replace the key.",
+  apiKeySaved: "Key saved. Uncached course requests will verify it.",
+  apiKeyRemoved: "Saved key removed",
+  providerSearchPlaceholder: "Course or club name (at least 2 characters)",
+  providerSearch: "Search online",
+  providerSearching: "Searching…",
+  providerSearchHelp:
+    "Search runs only when requested. Search and detail responses are cached for 24 hours to reduce API usage.",
+  availableTees: "available tees",
+  cachedResults: "Showing cached results",
+  providerNoResults: "No courses found. Try another course or club name.",
+  importProvider: "Save course & tees",
+  refreshProvider: "Fetch latest version",
+  providerImported:
+    "Course saved. Select a tee and rating category to apply it to this round.",
+  golf_api_key_missing: "Enter and save an API key before searching.",
+  golf_api_invalid_key: "Enter a non-empty API key without spaces.",
+  golf_api_environment_key: "The server environment controls the API key.",
+  golf_api_unauthorized:
+    "GolfCourseAPI rejected this key. Check the key and save it again.",
+  golf_api_forbidden:
+    "GolfCourseAPI access is not allowed for this account or plan.",
+  golf_api_rate_limited:
+    "GolfCourseAPI request limit reached. Try again later.",
+  golf_api_not_found: "The requested GolfCourseAPI course was not found.",
+  golf_api_timeout:
+    "Could not reach GolfCourseAPI. Check your connection and try again.",
+  golf_api_unavailable:
+    "GolfCourseAPI is currently unavailable. Try again later.",
+  golf_api_invalid_data:
+    "GolfCourseAPI returned incomplete or unsupported course data. No course was saved.",
+  golf_api_query_required:
+    "Enter 2–160 characters for the course or club name.",
   manualOverrides: "Manual overrides",
   noSpace: "No time remains. Adjust existing shot timing.",
   manualSource: "Manual round configuration",
@@ -201,6 +258,64 @@ const en = {
   untitled: "Untitled round",
 };
 const ko = {
+  shotNumberLabel: "샷 번호",
+  automatic: "자동 (비워 두기)",
+  colorTheme: "색상 테마",
+  themeCustom: "사용자 지정",
+  theme_broadcast: "방송 기본",
+  theme_forest: "포레스트",
+  theme_ocean: "오션",
+  theme_paper: "페이퍼",
+  theme_crimson: "크림슨",
+  transparency: "팝업 전체 투명도",
+  transparencyHelp:
+    "0%는 전체 표시, 100%는 팝업 전체가 투명해집니다. 배경 불투명도는 배경에만 적용됩니다.",
+  providerTitle: "GolfCourseAPI 연동",
+  apiKey: "API 키",
+  apiConfigured: "키 설정됨",
+  apiNotConfigured: "키 미설정",
+  apiKeyHelp:
+    "키는 프로젝트와 분리한 로컬 서버 설정에만 저장하며, 코스 조회 시 GolfCourseAPI에만 전송합니다. 메모나 공유 JSON에 넣지 마세요.",
+  apiKeyReplace: "저장된 키를 바꾸려면 새 키 입력",
+  apiKeyPlaceholder: "GolfCourseAPI 키 입력",
+  saveApiKey: "API 키 저장",
+  removeApiKey: "저장된 키 삭제",
+  getApiKey: "API 키 발급",
+  apiEnvironment:
+    "서버 환경변수 GOLFCOURSE_API_KEY가 설정되어 있습니다. 키 변경은 환경변수에서 하세요.",
+  apiKeySaved:
+    "키를 저장했습니다. 캐시되지 않은 코스 조회 시 유효성을 확인합니다.",
+  apiKeyRemoved: "저장된 키를 삭제했습니다",
+  providerSearchPlaceholder: "코스 또는 클럽 이름 (2글자 이상)",
+  providerSearch: "온라인 검색",
+  providerSearching: "검색 중…",
+  providerSearchHelp:
+    "검색 버튼을 눌렀을 때만 조회합니다. 검색·상세 결과를 24시간 캐시하여 API 사용량을 줄입니다.",
+  availableTees: "개 티",
+  cachedResults: "캐시된 결과 표시 중",
+  providerNoResults:
+    "검색된 코스가 없습니다. 다른 코스·클럽 이름으로 검색하세요.",
+  importProvider: "코스 · 티 가져오기",
+  refreshProvider: "최신 버전 가져오기",
+  providerImported:
+    "코스를 저장했습니다. 티와 레이팅 구분을 선택하여 현재 라운드에 적용하세요.",
+  golf_api_key_missing: "검색 전에 API 키를 입력하고 저장하세요.",
+  golf_api_invalid_key: "공백 없는 API 키를 입력하세요.",
+  golf_api_environment_key: "서버 환경변수에서 API 키를 관리하고 있습니다.",
+  golf_api_unauthorized:
+    "GolfCourseAPI에서 키를 거부했습니다. 키를 확인하고 다시 저장하세요.",
+  golf_api_forbidden:
+    "이 계정 또는 요금제에 GolfCourseAPI 접근 권한이 없습니다.",
+  golf_api_rate_limited:
+    "GolfCourseAPI 요청 한도에 도달했습니다. 잠시 후 다시 시도하세요.",
+  golf_api_not_found: "요청한 GolfCourseAPI 코스를 찾지 못했습니다.",
+  golf_api_timeout:
+    "GolfCourseAPI에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도하세요.",
+  golf_api_unavailable:
+    "현재 GolfCourseAPI를 사용할 수 없습니다. 나중에 다시 시도하세요.",
+  golf_api_invalid_data:
+    "GolfCourseAPI의 데이터 형식이 지원되지 않거나 불완전하여 코스를 저장하지 않았습니다.",
+  golf_api_query_required: "코스 또는 클럽 이름을 2~160글자로 입력하세요.",
   manualOverrides: "수동 수정",
   noSpace: "남은 시간이 없습니다. 기존 샷의 시간을 조절하세요.",
   manualSource: "수동 라운드 설정",

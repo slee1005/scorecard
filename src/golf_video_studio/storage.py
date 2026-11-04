@@ -94,3 +94,17 @@ def job_put(job: dict):
 def jobs() -> list[dict]:
     with connect() as db:
         return [json.loads(r[0]) for r in db.execute("SELECT data FROM jobs ORDER BY rowid DESC LIMIT 100")]
+
+
+def provider_cache_get(key: str) -> dict | None:
+    with connect() as db:
+        db.execute("CREATE TABLE IF NOT EXISTS provider_cache (key TEXT PRIMARY KEY, data TEXT NOT NULL)")
+        row = db.execute("SELECT data FROM provider_cache WHERE key=?", (key,)).fetchone()
+    return json.loads(row[0]) if row else None
+
+
+def provider_cache_put(key: str, value: dict):
+    import time
+    with connect() as db:
+        db.execute("CREATE TABLE IF NOT EXISTS provider_cache (key TEXT PRIMARY KEY, data TEXT NOT NULL)")
+        db.execute("INSERT OR REPLACE INTO provider_cache VALUES (?,?)", (key, json.dumps({"time": time.time(), "data": value})))

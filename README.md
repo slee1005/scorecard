@@ -13,10 +13,11 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | Desktop web editor | Video import/playback, round and shot editing, timeline, overlay design and saved projects implemented |
 | MP4 export | Real FFmpeg H.264/AAC rendering, progress and download; shared preview/export graphics |
 | Course library | Local search, tee/category selection, manual entry and authorized CSV/JSON imports |
+| GolfCourseAPI | API-key settings, online name search, tee/category and hole imports, 24-hour cache; a valid user key is required |
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 21 backend tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 35 backend tests and 2 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -35,14 +36,22 @@ Open [http://127.0.0.1:8775](http://127.0.0.1:8775). Use `--port 8780` for anoth
 
 1. Create a project and import an MP4, MOV or WebM. One source video belongs to each project. Metadata includes orientation-corrected dimensions, duration, FPS and audio presence. Browser playback depends on browser codec support; H.264 MP4 is the most portable input.
 2. Enter the player, course, tee, rating category, date and optional published rating/slope. Open **Round & scorecard** to enter all 18 pars, yardages and scores. Unknown values stay blank. Front/back/overall totals show entered holes only; relative-to-par includes only scored holes with a known par.
-3. Add shots with club, hole, distance, remaining distance, result, notes and start/end times. Shots are automatically numbered per hole in list order. Move them up/down to reorder. Newly added shots use the next available time after the last shot; edit timestamps or drag timeline markers to move them.
-4. Add a full/front/back scorecard. Select a timeline graphic and use **Design** to choose its template, adjust timing, normalized position/size, font, text/panel/accent colors, panel opacity, radius, visibility and course label. Drag panels and their resize handle directly in the preview. Save styles as project presets. Shot and scorecard panels can coexist in separate areas; timing/panel collisions are rejected.
+3. Add shots with club, hole, distance, remaining distance, result, notes and start/end times. Shots are automatically numbered per hole in list order. Set **Shot number** (1–99) to override the displayed number, or leave it blank to restore automatic numbering. Manual numbers stay fixed when reordering; they do not renumber other shots. Move them up/down to reorder. Newly added shots use the next available time after the last shot; edit timestamps or drag timeline markers to move them.
+4. Add a full/front/back scorecard. Select a timeline graphic and use **Design** to choose its template, adjust timing, normalized position/size, font, text/panel/accent colors, panel opacity, radius, visibility and course label. Drag panels and their resize handle directly in the preview. Choose Broadcast, Forest, Ocean, Paper or Crimson color themes, or set custom colors. **Overlay transparency** ranges from 0% (visible) to 100% (fully transparent) and affects the entire graphic, while **Panel opacity** affects only the background. Theme changes preserve transparency, timing and placement. Save styles as project presets. Shot and scorecard panels can coexist in separate areas; timing/panel collisions are rejected.
 5. Use play/pause, seek, frame steps and timeline zoom. Space toggles playback; arrow keys step frames when no form control has focus. The actual video `currentTime` controls overlay visibility with half-open `[start, end)` intervals.
 6. Select **Export MP4**, choose draft/high/master quality and source/1080p/4K bounds. Source aspect ratio and audio are preserved, video is encoded as H.264/yuv420p and the first audio track as AAC. Export never upscales. Progress comes from FFmpeg; download the finished MP4 from Exports.
 
 The same Pillow-generated RGBA panels are displayed in the browser and composited into exports. Coordinates use the actual video rectangle, including portrait clips, rather than the surrounding letterbox. For portrait videos, use front/back scorecards or enlarge the panel for legibility. The preview is a video plus transparent image layers; `requestAnimationFrame` runs only while playing. These image layers deliberately share their source with the renderer instead of maintaining a second canvas text implementation.
 
 ## Courses and data integrity
+
+### GolfCourseAPI setup
+
+Open **Course library → GolfCourseAPI connection**, enter your key and select **Save API key**. Search by course or club name using **Search online** (or Enter), then **Save course & tees**. Select the tee and its published `male`/`female` rating category from the saved course card, and choose **Use selected tee**. The normal replacement confirmation protects current round values and preserves scores. [Official API documentation](https://api.golfcourseapi.com/docs/api/) describes the provider data and account requirements.
+
+Search uses `GET /v1/search?search_query=…`; detail uses `GET /v1/courses/{id}` with `Authorization: Bearer …`. Only the local backend calls the provider, on explicit search/import/refresh actions. Search returns tee counts; importing a selected course loads full tee ratings, total yardage/par and available hole par/yardage/handicap. Missing holes stay unknown. Imports are labeled **GolfCourseAPI / imported**, not USGA-verified. **Fetch latest version** creates a new saved course version; applying it to a round is a separate confirmed action. Search/detail responses are cached locally for 24 hours. Bad keys, plan restrictions, rate limits and connectivity errors are reported without exposing the key.
+
+Keys are never returned to the browser, saved in browser storage, embedded in project JSON, or committed. A saved key lives in `GVS_HOME/provider-settings.json` with owner-only permissions (0600); this is a local credential file, not encrypted storage. Use **Remove saved key** to clear it. Alternatively set `GOLFCOURSE_API_KEY` in the server environment; it takes precedence and cannot be replaced through the UI. Keep the credential file out of shared backups. No real key is shipped. Integration tests use synthetic provider responses; a live account lookup must be verified with your own key.
 
 Course search searches the **saved local course library**, including name, club, city, state and ZIP. A course can contain multiple tees and rating categories. Save the current round's course configuration, or import an authorized course JSON file. Choose the exact tee/category before applying it. Confirmation is required before course values are replaced; round scores are retained.
 
@@ -66,7 +75,7 @@ Projects and reusable courses are stored in `~/.golf-video-studio/studio.sqlite`
 
 All APIs use `/api/v1`; interactive API documentation is at `/docs`. SQLite revisions prevent stale updates: `PUT /projects/{id}` requires the last revision and returns 409 on a conflict. The UI retains the conflicting draft in memory and offers JSON download before reload. There is a single render worker and at most three queued/running exports. Export jobs persist; interrupted jobs are marked failed on restart. Completed exports older than 24 hours are removed on next startup; source videos are retained. Temporary rendering assets are removed after each job.
 
-The server binds **127.0.0.1 only**. It rejects other Host values and cross-origin requests. There are no outbound backend requests, user accounts, telemetry, cloud storage or production authentication. Do not expose this unauthenticated development server to the internet.
+The server binds **127.0.0.1 only**. It rejects other Host values and cross-origin requests. The only outbound backend requests are explicit authenticated GolfCourseAPI course reads when configured. There are no user accounts, telemetry, cloud storage or production authentication. Do not expose this unauthenticated development server to the internet.
 
 ## Mobile development
 
@@ -83,12 +92,13 @@ npm run android   # Android SDK / emulator or attached device
 
 Use development builds, not Expo Go alone. `lib/repository.ts` uses loopback at port 8775: iOS simulator or Android `adb reverse` can reach the desktop backend. A physical iPhone cannot access this loopback server directly. Application identifiers are **development placeholders**; replace them with owned identifiers before release. `eas.json` prepares development APK, internal preview and production AAB profiles; no signing credentials, EAS project or publication is assumed.
 
-Native code includes device document-video selection, actual upload progress, playback, saved overlay preview, server export submission/progress and download links. The web editor supplies detailed timing/design. Native builds/device behavior and offline conflict interaction still need device validation. Authentication/SecureStore, HTTPS multi-user hosting, private cloud storage, background/resumable upload, push notifications, touch overlay design, local language support and store release are **not implemented**. See [docs/STATUS.md](docs/STATUS.md).
+Native round screens also support manual shot-number overrides. Native code includes device document-video selection, actual upload progress, playback, saved overlay preview, server export submission/progress and download links. The web editor supplies detailed timing/design. Native builds/device behavior and offline conflict interaction still need device validation. Authentication/SecureStore, HTTPS multi-user hosting, private cloud storage, background/resumable upload, push notifications, touch overlay design, local language support and store release are **not implemented**. See [docs/STATUS.md](docs/STATUS.md).
 
 ## Verification
 
 ```bash
 uv run pytest
+node --test tests/test_editor_data.mjs
 cd mobile
 npm ci
 npm run typecheck
@@ -96,7 +106,7 @@ npx expo install --check
 npx expo export --platform ios --platform android
 ```
 
-Tests cover scoring and partial-round totals, score categories, shot numbering, half-open visibility, collisions/bounds, optimistic concurrency, atomic CSV imports, course snapshots/overrides, Host/Origin checks, RGBA panels, portrait proportions, restart recovery, and a real FFmpeg MP4 export with synthetic video/audio. The export test checks codecs, audio/video start and duration, timed graphic presence/absence and frame similarity with the shared preview panel. No test video is committed. Mobile JS bundling is not a signed native build or on-device test.
+Tests cover scoring and partial-round totals, score categories, shot numbering, half-open visibility, collisions/bounds, optimistic concurrency, atomic CSV imports, course snapshots/overrides, Host/Origin checks, RGBA panels, portrait proportions, restart recovery, and a real FFmpeg MP4 export with synthetic video/audio. The export test checks codecs, audio/video start and duration, timed graphic presence/absence and frame similarity with the shared preview panel. GolfCourseAPI tests verify credential isolation, HTTP error redaction, caching, exact tee/category mapping, missing holes and immutable refreshes. Theme/numbering tests and the real export cover manual shot numbers and global alpha. Tests make no live provider calls, and test videos are not committed. Mobile JS bundling is not a signed native build or on-device test.
 
 ## Structure
 

@@ -15,7 +15,9 @@ This status distinguishes working desktop implementation from native preparation
 | Preview drag/resize and portrait coordinates | Implemented |
 | Shared PNG preview/export rendering | Implemented and pixel-compared in synthetic export test |
 | Actual FFmpeg MP4/H.264/AAC export + progress/download | Implemented and tested with synthetic audio/video |
-| Course library search, multi-tee/category selection | Implemented against saved local data |
+| Course library search, multi-tee/category selection | Saved local library plus explicit GolfCourseAPI online name search/import |
+| GolfCourseAPI key settings and imports | Implemented; local secret settings, 24-hour cache, exact tee/category/hole mapping; live user-key validation pending |
+| Manual shot numbers and popup themes/transparency | Implemented in shared preview/export; blank numbers retain automatic behavior |
 | Source snapshots and round override detection | Implemented |
 | Authorized JSON/CSV import and reference image/PDF upload | Implemented; no OCR |
 | Live USGA search/API | Not implemented: permission/provider integration required |
@@ -32,15 +34,17 @@ This status distinguishes working desktop implementation from native preparation
 
 ## Verification evidence
 
-- Backend suite: 21 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
+- Backend suite: 35 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
 - Existing adjacent ShotTracer suite: 92 tests passed; source was not edited.
 - Browser QA uses a temporary data home: Korean workspace render, real keyboard round entry/autosave, synthetic video upload, shot creation, preview graphics and real export submission/download readiness.
+- GolfCourseAPI integration tests use synthetic responses; no real API key was supplied. Credential redaction, auth/rate-limit/network errors, caching, refresh and snapshot integrity are covered.
+- JavaScript suite: 2 tests for manual numbering and color themes preserving alpha/position.
 - Source and mobile lockfiles are retained for reproducibility. See README commands for rerunning validation.
 
 ## Next development milestones
 
 1. Run the development client on iOS simulator and Android emulator; exercise offline changes, reconnect, cross-client conflicts and native video upload/playback.
 2. Add native touch timing/design, mobile translations, conflict merge/export UX and gallery/share integration.
-3. Establish a licensed course-data provider or USGA programme access; add a provider adapter with tests and explicit provenance.
+3. Validate GolfCourseAPI with a user-provided key and representative live courses; add any separately authorized USGA integration only with appropriate access.
 4. Design hosted authentication/authorization/storage/render infrastructure before exposing a shared production endpoint.
 5. Build signed device artifacts, verify background behavior and store privacy declarations, then prepare store submissions with owner-provided accounts.

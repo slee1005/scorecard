@@ -316,6 +316,7 @@ export default function App() {
           color: "#ffffff",
           accent: "#29c4b5",
           opacity: 0.9,
+          overlay_opacity: 1,
           radius: 14,
           font_size: 24,
           font: "sans",
@@ -473,8 +474,24 @@ export default function App() {
               .map((s, i) => (
                 <View key={s.id} style={css.card}>
                   <Text style={css.cardTitle}>
-                    Shot {i + 1} · {s.club}
+                    Shot {s.number ?? i + 1} · {s.club}
                   </Text>
+                  <TextInput
+                    defaultValue={String(s.number ?? "")}
+                    accessibilityLabel="Shot number"
+                    placeholder="Shot number (blank = automatic)"
+                    placeholderTextColor={C.muted}
+                    keyboardType="number-pad"
+                    style={css.input}
+                    onEndEditing={(e) => {
+                      const value = e.nativeEvent.text;
+                      edit(
+                        (p) =>
+                          (p.shots!.find((x) => x.id === s.id)!.number =
+                            value === "" ? null : Number(value)),
+                      );
+                    }}
+                  />
                   <TextInput
                     defaultValue={s.club}
                     style={css.input}

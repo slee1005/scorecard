@@ -157,8 +157,8 @@ def test_real_export_audio_timing_and_graphics(client,tmp_path):
     with source.open('rb') as f:r=client.post(f"/api/v1/projects/{p['id']}/video",files={'file':('clip.mp4',f,'video/mp4')})
     assert r.status_code==200,r.text
     p=r.json()['project'];assert p['video']['has_audio']
-    s=Shot(hole=1,start=.5,end=1.5)
-    o=Overlay(shot_id=s.id,start=.5,end=1.5)
+    s=Shot(hole=1,number=7,start=.5,end=1.5)
+    o=Overlay(shot_id=s.id,start=.5,end=1.5,style=Style(background="#122d24",color="#f4f8e8",accent="#b6d87d",opacity=.7,overlay_opacity=.6))
     p['shots']=[s.model_dump()];p['overlays']=[o.model_dump()]
     p=client.put('/api/v1/projects/'+p['id'],json=p).json()['project']
     r=client.post(f"/api/v1/projects/{p['id']}/exports",json={'revision':p['revision'],'quality':'high','resolution':'source'})
@@ -208,3 +208,34 @@ def test_portrait_panel_preserves_video_aspect():
     image = graphics.panel(p, overlay)
     expected = overlay.style.width * 1080 / (overlay.style.height * 1920)
     assert abs(image.width / image.height - expected) < .01
+
+
+def test_manual_numbers_override_display_without_affecting_automatic_order(client):
+    a,b,c=Shot(hole=1),Shot(hole=1,number=7),Shot(hole=1)
+    p=Project(shots=[a,b,c])
+    assert numbered_shots(p)=={a.id:1,b.id:7,c.id:3}
+    p.shots.reverse()
+    assert numbered_shots(p)=={c.id:1,b.id:7,a.id:3}
+    storage.create(p)
+    loaded=storage.load(p.id)
+    assert numbered_shots(loaded)[b.id]==7
+    loaded.shots[1].number=None
+    assert numbered_shots(loaded)[b.id]==2
+    for number in (0,100):
+        with pytest.raises(ValidationError):Shot(hole=1,number=number)
+
+
+def test_legacy_style_and_global_transparency():
+    legacy=Style.model_validate({'opacity':.5})
+    assert legacy.overlay_opacity==1
+    p=Project(shots=[Shot(hole=1)])
+    o=Overlay(shot_id=p.shots[0].id,style=Style(opacity=.8,overlay_opacity=.5))
+    image=graphics.panel(p,o)
+    assert image.getchannel('A').getextrema()[1]==128
+    assert image.getpixel((image.width-25,image.height-25))[3]==102
+    o.style.overlay_opacity=0
+    assert graphics.panel(p,o).getchannel('A').getbbox() is None
+    o.style.overlay_opacity=1
+    o.style.opacity=0
+    assert graphics.panel(p,o).getchannel('A').getextrema()[1]==255
+    with pytest.raises(ValidationError):Style(overlay_opacity=1.1)

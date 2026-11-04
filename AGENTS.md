@@ -9,6 +9,7 @@ Read README.md, README.ko.md, docs/ARCHITECTURE.md and docs/STATUS.md first.
 - Unknown hole information stays unknown. Never scrape USGA or label imports verified without an authorized source.
 - Preserve immutable course references; edit round overrides separately.
 - Preserve revision checks. Offline drafts must not silently overwrite newer server data.
+- Permit outbound requests only to the fixed GolfCourseAPI host for explicit user search/import/refresh; keep keys out of responses, logs, projects and Git.
 - Keep the server loopback-only; hosting/auth is a separate explicitly scoped change.
 - Mobile: `npm ci`, `npm run typecheck`, `npx expo install --check`, then `npx expo export --platform ios --platform android`. Device builds require separate verification.
 - Regenerate docs/openapi.json from the FastAPI app and run `npm run generate:api` in mobile when models/routes change.

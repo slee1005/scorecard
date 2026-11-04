@@ -105,6 +105,7 @@ class Round(Model):
 class Shot(Model):
     id: str = Field(default_factory=uid, pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     hole: int = Field(ge=1, le=18)
+    number: int | None = Field(default=None, ge=1, le=99)
     club: str = Field(default="Driver", max_length=40)
     distance: float | None = Field(default=None, ge=0, le=1000)
     remaining: float | None = Field(default=None, ge=0, le=1500)
@@ -131,6 +132,7 @@ class Style(Model):
     color: str = Field(default="#ffffff", pattern=r"^#[0-9a-fA-F]{6}$")
     accent: str = Field(default="#29c4b5", pattern=r"^#[0-9a-fA-F]{6}$")
     opacity: float = Field(default=0.9, ge=0, le=1)
+    overlay_opacity: float = Field(default=1.0, ge=0, le=1)
     radius: int = Field(default=14, ge=0, le=60)
     font_size: int = Field(default=24, ge=12, le=48)
     font: Literal["sans", "serif", "mono"] = "sans"
@@ -219,7 +221,7 @@ def numbered_shots(p: Project) -> dict[str, int]:
     # The list order is intentional and can be changed without changing timing.
     for shot in p.shots:
         counts[shot.hole] = counts.get(shot.hole, 0) + 1
-        result[shot.id] = counts[shot.hole]
+        result[shot.id] = shot.number if shot.number is not None else counts[shot.hole]
     return result
 
 

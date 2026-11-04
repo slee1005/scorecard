@@ -1,4 +1,9 @@
 import { t, lang, setLang } from "./i18n.js";
+import {
+  THEMES,
+  currentTheme,
+  shotNumber as displayShotNumber,
+} from "./editor-data.js";
 const $ = (s) => document.querySelector(s),
   $$ = (s) => [...document.querySelectorAll(s)];
 const esc = (v) =>
@@ -20,6 +25,10 @@ const fmt = (v) =>
 const S = {
   p: null,
   totals: null,
+  provider: { configured: false, source: "none" },
+  remoteQuery: "",
+  remoteResults: null,
+  remoteLoading: false,
   projects: [],
   courses: [],
   jobs: [],
@@ -63,6 +72,7 @@ const style = () => ({
   color: "#ffffff",
   accent: "#29c4b5",
   opacity: 0.9,
+  overlay_opacity: 1,
   radius: 14,
   font_size: 24,
   font: "sans",
@@ -83,7 +93,7 @@ async function api(path, options = {}) {
     let msg = await r.text();
     try {
       const d = JSON.parse(msg).detail;
-      msg = typeof d === "string" ? d : JSON.stringify(d);
+      msg = typeof d === "string" ? t(d) : JSON.stringify(d);
     } catch {}
     if (
       r.status === 409 &&
@@ -266,7 +276,7 @@ function renderInspector() {
   let html = "";
   if (S.tab === "round") {
     const r = p.round;
-    html = `<div class="panel-title"><h3>${t("courseFields")}</h3><span class="tag">${t(S.overrides?.length ? "manualOverrides" : r.reference ? "imported" : "manual")}</span></div>${field("player", "player", r.player)}${field("course", "course", r.course)}${field("date", "date", r.date, "date")}<div class="field-grid">${field("tee", "tee", r.tee)}${field("category", "category", r.category)}${field("rating", "rating", r.rating, "number", 'min="20" max="100" step=".1"')}${field("slope", "slope", r.slope, "number", 'min="55" max="155"')}${field("totalPar", "total_par", r.total_par, "number", 'min="27" max="108"')}${field("totalYards", "total_yardage", r.total_yardage, "number", 'min="500" max="15000"')}</div>${button("round-view", `▦ &nbsp;${t("all")}`, "wide outline")}${button("courses", `⚑ &nbsp;${t("setup")}`, "wide subtle")}${button("save-course", t("saveCourse"), "wide subtle")}<div class="inspector-note">${t("modified")}</div>`;
+    html = `<div class="panel-title"><h3>${t("courseFields")}</h3><span class="tag">${t(S.overrides?.length ? "manualOverrides" : r.reference ? "imported" : "manual")}</span></div>${field("player", "player", r.player)}${field("course", "course", r.course)}${field("date", "date", r.date, "date")}<div class="field-grid">${field("tee", "tee", r.tee)}${field("category", "category", r.category)}${field("rating", "rating", r.rating, "number", 'min="20" max="100" step=".1"')}${field("slope", "slope", r.slope, "number", 'min="55" max="155"')}${field("totalPar", "total_par", r.total_par, "number", 'min="27" max="108"')}${field("totalYards", "total_yardage", r.total_yardage, "number", 'min="500" max="15000"')}</div>${button("round-view", `▦ &nbsp;${t("all")}`, "wide outline")}${button("courses", `⚑ &nbsp;${t("setup")}`, "wide subtle")}${button("save-course", t("saveCourse"), "wide subtle")}${button("courses", t("providerTitle"), "wide outline")}<div class="inspector-note">${t("modified")}</div>`;
   }
   if (S.tab === "shot") {
     const shot = p.shots.find((s) => s.id === S.shot);
@@ -286,14 +296,14 @@ function renderInspector() {
           shot.club,
           clubs.map((c) => [c, c]),
           "shot",
-        )}<div class="field-grid">${field("distance", "distance", shot.distance, "number", 'min="0" max="1000" step=".1"', "shot")}${field("remaining", "remaining", shot.remaining, "number", 'min="0" max="1500" step=".1"', "shot")}${field("start", "start", shot.start, "number", 'min="0" step=".01"', "shot")}${field("end", "end", shot.end, "number", 'min=".01" step=".01"', "shot")}</div>${field("result", "result", shot.result, "text", "", "shot")}<label class="field"><span>${t("notes")}</span><textarea data-scope="shot" data-key="notes">${esc(shot.notes)}</textarea></label><div class="field-grid">${button("up", `↑ ${t("moveUp")}`, "subtle")}${button("down", `↓ ${t("moveDown")}`, "subtle")}</div>${button("delete-shot", t("deleteShot"), "wide danger")}`
+        )}<div class="field-grid">${field("shotNumberLabel", "number", shot.number, "number", `min="1" max="99" placeholder="${t("automatic")}"`, "shot")}${field("distance", "distance", shot.distance, "number", 'min="0" max="1000" step=".1"', "shot")}${field("remaining", "remaining", shot.remaining, "number", 'min="0" max="1500" step=".1"', "shot")}${field("start", "start", shot.start, "number", 'min="0" step=".01"', "shot")}${field("end", "end", shot.end, "number", 'min=".01" step=".01"', "shot")}</div>${field("result", "result", shot.result, "text", "", "shot")}<label class="field"><span>${t("notes")}</span><textarea data-scope="shot" data-key="notes">${esc(shot.notes)}</textarea></label><div class="field-grid">${button("up", `↑ ${t("moveUp")}`, "subtle")}${button("down", `↓ ${t("moveDown")}`, "subtle")}</div>${button("delete-shot", t("deleteShot"), "wide danger")}`
       : `<p class="empty-note">${t("selectShot")}</p>${button("add-shot", `＋ ${t("addShot")}`, "wide primary")}`;
   }
   if (S.tab === "design") {
     const o = p.overlays.find((o) => o.id === S.overlay);
     if (o) {
       const s = o.style;
-      html = `${select(
+      html = `${select("colorTheme", "theme", currentTheme(s), [["custom", t("themeCustom")], ...Object.keys(THEMES).map((k) => [k, t("theme_" + k)])], "theme")}${select(
         "type",
         "type",
         o.type,
@@ -308,7 +318,7 @@ function renderInspector() {
               ["back", t("backType")],
             ],
         "overlay",
-      )}<div class="field-grid">${field("start", "start", o.start, "number", 'min="0" step=".01"', "overlay")}${field("end", "end", o.end, "number", 'min=".01" step=".01"', "overlay")}</div><h4>${t("position")}</h4><div class="field-grid">${["x", "y", "width", "height"].map((k) => field(k, k, s[k], "number", 'min="0" max="1" step=".01"', "style")).join("")}${field("fontSize", "font_size", s.font_size, "number", 'min="12" max="48"', "style")}${field("radius", "radius", s.radius, "number", 'min="0" max="60"', "style")}</div>${select(
+      )}<div class="field-grid">${field("start", "start", o.start, "number", 'min="0" step=".01"', "overlay")}${field("end", "end", o.end, "number", 'min=".01" step=".01"', "overlay")}</div><div class="color-fields">${field("textColor", "color", s.color, "color", "", "style")}${field("background", "background", s.background, "color", "", "style")}${field("accent", "accent", s.accent, "color", "", "style")}</div>${field("opacity", "opacity", s.opacity, "range", 'min="0" max="1" step=".01"', "style")}<label class="field"><span>${t("transparency")} <output id="transparency-value">${Math.round((1 - (s.overlay_opacity ?? 1)) * 100)}%</output></span><input type="range" data-scope="style" data-key="transparency" min="0" max="100" step="1" value="${Math.round((1 - (s.overlay_opacity ?? 1)) * 100)}" aria-label="${t("transparency")}"></label><p class="inspector-note">${t("transparencyHelp")}</p><h4>${t("position")}</h4><div class="field-grid">${["x", "y", "width", "height"].map((k) => field(k, k, s[k], "number", 'min="0" max="1" step=".01"', "style")).join("")}${field("fontSize", "font_size", s.font_size, "number", 'min="12" max="48"', "style")}${field("radius", "radius", s.radius, "number", 'min="0" max="60"', "style")}</div>${select(
         "font",
         "font",
         s.font,
@@ -318,7 +328,7 @@ function renderInspector() {
           ["mono", t("mono")],
         ],
         "style",
-      )}<div class="color-fields">${field("textColor", "color", s.color, "color", "", "style")}${field("background", "background", s.background, "color", "", "style")}${field("accent", "accent", s.accent, "color", "", "style")}</div>${field("opacity", "opacity", s.opacity, "range", 'min="0" max="1" step=".01"', "style")}${[
+      )}${[
         ["visible", o.visible, "overlay"],
         ["panel", s.panel, "style"],
         ["showCourse", s.show_course, "style"],
@@ -339,11 +349,7 @@ function renderInspector() {
   $("#inspector-content").innerHTML = html;
 }
 function shotNumber(shot) {
-  return (
-    S.p.shots
-      .filter((s) => s.hole === shot.hole)
-      .findIndex((s) => s.id === shot.id) + 1
-  );
+  return displayShotNumber(S.p.shots, shot);
 }
 function renderTimeline() {
   const p = S.p,
@@ -467,8 +473,33 @@ function renderRound() {
 function renderCourses() {
   const query = $("#course-search")?.value || "";
   $("#courses-view").innerHTML =
-    `<div class="page-title course-banner"><span class="eyebrow">${t("courses")}</span><h2>${t("courseTitle")}</h2><p>${t("courseDesc")}</p></div><div class="course-tools"><input id="course-search" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}">${button("import-course", `＋ ${t("importJSON")}`, "outline")}</div><div class="usga-note"><span>↗</span><div><a href="https://ncrdb.usga.org/courseTeeInfo.aspx" target="_blank" rel="noopener">${t("usga")}</a><p>${t("usgaNote")}</p></div></div><div id="course-results"></div>`;
+    `<div class="page-title course-banner"><span class="eyebrow">${t("courses")}</span><h2>${t("courseTitle")}</h2><p>${t("courseDesc")}</p></div>
+    <section class="provider-panel" aria-label="${t("providerTitle")}"><div class="section-head"><h3>${t("providerTitle")}</h3><span class="tag">${t(S.provider.configured ? "apiConfigured" : "apiNotConfigured")}</span></div>
+    <p class="inspector-note">${t("apiKeyHelp")}</p>
+    <label class="field"><span>${t("apiKey")}</span><input id="provider-key" type="password" autocomplete="new-password" maxlength="4096" placeholder="${t(S.provider.configured ? "apiKeyReplace" : "apiKeyPlaceholder")}" ${S.provider.source === "environment" ? "disabled" : ""}></label>
+    <div class="button-row">${button("save-api-key", t("saveApiKey"), "outline", S.provider.source === "environment" ? "disabled" : "")}${button("clear-api-key", t("removeApiKey"), "subtle", S.provider.source !== "local" ? "disabled" : "")}<a class="button" href="https://golfcourseapi.com/" target="_blank" rel="noopener">${t("getApiKey")} ↗</a></div>
+    ${S.provider.source === "environment" ? `<p class="inspector-note">${t("apiEnvironment")}</p>` : ""}
+    <div class="course-tools"><input id="provider-query" value="${esc(S.remoteQuery)}" placeholder="${t("providerSearchPlaceholder")}" aria-label="${t("providerSearchPlaceholder")}" maxlength="160">${button("search-provider", t(S.remoteLoading ? "providerSearching" : "providerSearch"), "primary", S.remoteLoading ? "disabled" : "")}</div><p class="inspector-note">${t("providerSearchHelp")}</p><div id="provider-results"></div></section>
+    <div class="course-tools"><input id="course-search" placeholder="${t("search")}" aria-label="${t("search")}" value="${esc(query)}">${button("import-course", `＋ ${t("importJSON")}`, "outline")}</div><div class="usga-note"><span>↗</span><div><a href="https://ncrdb.usga.org/courseTeeInfo.aspx" target="_blank" rel="noopener">${t("usga")}</a><p>${t("usgaNote")}</p></div></div><div id="course-results"></div>`;
+  renderProviderResults();
   renderCourseResults(query);
+}
+function renderProviderResults() {
+  if (!$("#provider-results")) return;
+  $("#provider-results").innerHTML =
+    S.remoteResults === null
+      ? ""
+      : S.remoteResults.items.length
+        ? S.remoteResults.items
+            .map(
+              (c) =>
+                `<article class="provider-result"><div><h4>${esc(c.name)}</h4><p>${esc([c.club, c.city, c.state, c.country].filter(Boolean).join(" · "))}</p><small>${c.tee_count} ${t("availableTees")}</small></div>${button("import-provider", t("importProvider"), "outline", `data-id="${esc(c.id)}"`)}</article>`,
+            )
+            .join("") +
+          (S.remoteResults.cached
+            ? `<p class="inspector-note">${t("cachedResults")}</p>`
+            : "")
+        : `<p class="empty-note">${t("providerNoResults")}</p>`;
 }
 function renderCourseResults(query = "") {
   const words = query.toLowerCase().split(/\s+/);
@@ -484,7 +515,7 @@ function renderCourseResults(query = "") {
     ? values
         .map(
           (c) =>
-            `<article class="course-card"><div class="course-icon">⚑</div><span class="tag">${t(c.verification === "manual" ? "manual" : "imported")}</span><h3>${esc(c.name)}</h3><p>${esc([c.city, c.state].filter(Boolean).join(", "))}</p><label class="field"><span>${t("teeSelect")}</span><select data-course="${c.id}">${c.tees.map((q) => `<option value="${q.id}">${esc(q.name)} · ${esc(q.category || "—")} · ${q.yardage ?? "—"} YDS · CR ${q.rating ?? "—"} / ${q.slope ?? "—"}</option>`).join("")}</select></label>${button("use-tee", t("useTee"), "wide primary", `data-id="${c.id}"`)}<small>${esc(c.source_name)} · ${esc(c.updated_at.slice(0, 10))}</small></article>`,
+            `<article class="course-card"><div class="course-icon">⚑</div><span class="tag">${t(c.verification === "manual" ? "manual" : "imported")}</span><h3>${esc(c.name)}</h3><p>${esc([c.city, c.state].filter(Boolean).join(", "))}</p><label class="field"><span>${t("teeSelect")}</span><select data-course="${c.id}">${c.tees.map((q) => `<option value="${q.id}">${esc(q.name)} · ${esc(q.category || "—")} · ${q.yardage ?? "—"} YDS · CR ${q.rating ?? "—"} / ${q.slope ?? "—"}</option>`).join("")}</select></label>${button("use-tee", t("useTee"), "wide primary", `data-id="${c.id}"`)}${c.source_name === "GolfCourseAPI" ? button("refresh-provider", t("refreshProvider"), "wide subtle", `data-id="${esc(c.external_id)}"`) : ""}<small>${esc(c.source_name)} · ${esc(c.updated_at.slice(0, 10))}</small></article>`,
         )
         .join("")
     : `<div class="empty-state"><span>⚑</span><h3>${t("noCourses")}</h3><p>${t("noCoursesDesc")}</p>${button("edit-course", t("courseFields"), "outline")}</div>`;
@@ -723,6 +754,58 @@ async function action(name, el) {
       if (S.view === "courses") renderCourses();
       break;
     }
+    case "save-api-key": {
+      const input = $("#provider-key");
+      const api_key = input.value.trim();
+      if (!api_key) throw Error(t("golf_api_invalid_key"));
+      S.provider = await api("/course-provider/settings", {
+        method: "PUT",
+        body: JSON.stringify({ api_key }),
+      });
+      input.value = "";
+      renderCourses();
+      notice(t("apiKeySaved"));
+      break;
+    }
+    case "clear-api-key":
+      S.provider = await api("/course-provider/settings", { method: "DELETE" });
+      S.remoteResults = null;
+      renderCourses();
+      notice(t("apiKeyRemoved"));
+      break;
+    case "search-provider": {
+      if (S.remoteLoading) return;
+      S.remoteQuery = $("#provider-query").value.trim();
+      if (S.remoteQuery.length < 2) throw Error(t("golf_api_query_required"));
+      S.remoteLoading = true;
+      S.remoteResults = null;
+      renderCourses();
+      try {
+        S.remoteResults = await api(
+          "/course-provider/search?q=" + encodeURIComponent(S.remoteQuery),
+        );
+      } finally {
+        S.remoteLoading = false;
+        if (S.view === "courses") renderCourses();
+      }
+      break;
+    }
+    case "import-provider":
+    case "refresh-provider": {
+      el.disabled = true;
+      try {
+        await api(
+          `/course-provider/courses/${el.dataset.id}/import?refresh=${name === "refresh-provider"}`,
+          { method: "POST" },
+        );
+        S.courses = (await api("/courses")).items;
+        renderCourses();
+        notice(t("providerImported"));
+      } finally {
+        el.disabled = false;
+      }
+      break;
+    }
     case "import-course":
       $("#course-file").click();
       break;
@@ -887,7 +970,7 @@ document.addEventListener("change", async (e) => {
       el.value = "";
       return;
     }
-    const key = el.dataset.key;
+    let key = el.dataset.key;
     if (el.dataset.hole) {
       await change(
         (p) =>
@@ -899,6 +982,17 @@ document.addEventListener("change", async (e) => {
     if (el.dataset.scope && key) {
       const scope = el.dataset.scope;
       if (scope === "preset") return;
+      if (scope === "theme") {
+        const theme = THEMES[el.value];
+        if (theme)
+          await change((p) =>
+            Object.assign(
+              p.overlays.find((o) => o.id === S.overlay).style,
+              theme,
+            ),
+          );
+        return;
+      }
       let value =
         el.type === "checkbox"
           ? el.checked
@@ -908,6 +1002,10 @@ document.addEventListener("change", async (e) => {
               : Number(el.value)
             : el.value;
       if (key === "hole") value = Number(value);
+      if (key === "transparency") {
+        key = "overlay_opacity";
+        value = 1 - value / 100;
+      }
       await change((p) => {
         let obj =
           scope === "round"
@@ -927,6 +1025,9 @@ document.addEventListener("change", async (e) => {
   }
 });
 document.addEventListener("input", (e) => {
+  if (e.target.id === "provider-query") S.remoteQuery = e.target.value;
+  if (e.target.dataset.key === "transparency" && $("#transparency-value"))
+    $("#transparency-value").textContent = e.target.value + "%";
   if (e.target.id === "seek") $("#video").currentTime = Number(e.target.value);
   if (e.target.id === "zoom") {
     S.zoom = Number(e.target.value);
@@ -1054,6 +1155,11 @@ document.addEventListener(
   true,
 );
 document.addEventListener("keydown", (e) => {
+  if (e.target.id === "provider-query" && e.key === "Enter") {
+    e.preventDefault();
+    action("search-provider").catch(error);
+    return;
+  }
   if (
     ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(e.target.tagName) ||
     $("#dialog").open
@@ -1073,6 +1179,7 @@ async function init() {
     if (!health.ffmpeg || !health.ffprobe) notice("FFmpeg / ffprobe", true);
     await refreshProjects();
     S.courses = (await api("/courses")).items;
+    S.provider = await api("/course-provider/settings");
     const stored = localStorage.getItem("gvs-project");
     const project = S.projects.find((p) => p.id === stored) || S.projects[0];
     if (project) await loadProject(project.id);

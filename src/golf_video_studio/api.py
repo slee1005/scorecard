@@ -10,12 +10,12 @@ import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Query
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, SecretStr
 
-from . import rendering, storage
+from . import rendering, storage, course_api
 from .graphics import png
 from .models import Course, Hole, Project, Tee, Video, totals, uid
 
@@ -233,6 +233,35 @@ def get_reference(pid: str):
     if not p.reference_file:
         raise HTTPException(404)
     return FileResponse(storage.directory(pid)/p.reference_file,filename=p.reference_file)
+
+
+class ProviderKey(BaseModel):
+    api_key: SecretStr
+
+
+@app.get('/api/v1/course-provider/settings')
+def provider_settings():
+    return course_api.key_status()
+
+
+@app.put('/api/v1/course-provider/settings')
+def provider_configure(body: ProviderKey):
+    return course_api.configure(body.api_key.get_secret_value())
+
+
+@app.delete('/api/v1/course-provider/settings')
+def provider_clear():
+    return course_api.configure(None)
+
+
+@app.get('/api/v1/course-provider/search')
+def provider_search(q: str = Query(min_length=2, max_length=160)):
+    return course_api.search(q)
+
+
+@app.post('/api/v1/course-provider/courses/{course_id}/import')
+def provider_import(course_id: str, refresh: bool = False):
+    return course_api.import_course(course_id, refresh)
 
 
 @app.get('/api/v1/courses')

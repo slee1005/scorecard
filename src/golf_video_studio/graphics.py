@@ -93,6 +93,8 @@ def panel(p: Project, overlay: Overlay) -> Image.Image:
         relative = totals(r.holes)['relative']
         relative_text = '—' if relative is None else 'E' if relative == 0 else f'{relative:+d}'
         text(pad, h*.88, f"OUT {front['score'] if front['score'] is not None else '—'}    IN {back['score'] if back['score'] is not None else '—'}    TOTAL {totals(r.holes)['score'] if totals(r.holes)['score'] is not None else '—'}    ({relative_text})", max(11, int(h*.065)), accent)
+    if s.overlay_opacity != 1:
+        image.putalpha(image.getchannel("A").point(lambda a: round(a * s.overlay_opacity)))
     return image
 
 

@@ -12,3 +12,5 @@ node_modules/
 dist/
 *.sqlite*
 .DS_Store
+
+provider-settings.json

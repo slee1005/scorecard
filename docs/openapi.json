@@ -428,6 +428,156 @@
         }
       }
     },
+    "/api/v1/course-provider/settings": {
+      "get": {
+        "summary": "Provider Settings",
+        "operationId": "provider_settings_api_v1_course_provider_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Provider Configure",
+        "operationId": "provider_configure_api_v1_course_provider_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderKey"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Provider Clear",
+        "operationId": "provider_clear_api_v1_course_provider_settings_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/course-provider/search": {
+      "get": {
+        "summary": "Provider Search",
+        "operationId": "provider_search_api_v1_course_provider_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 160,
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/course-provider/courses/{course_id}/import": {
+      "post": {
+        "summary": "Provider Import",
+        "operationId": "provider_import_api_v1_course_provider_courses__course_id__import_post",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Course Id"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/courses": {
       "get": {
         "summary": "List Courses",
@@ -1054,6 +1204,19 @@
         "type": "object",
         "title": "Project"
       },
+      "ProviderKey": {
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "format": "password",
+            "title": "Api Key",
+            "writeOnly": true
+          }
+        },
+        "type": "object",
+        "required": ["api_key"],
+        "title": "ProviderKey"
+      },
       "Round": {
         "properties": {
           "player": {
@@ -1209,6 +1372,19 @@
             "minimum": 1.0,
             "title": "Hole"
           },
+          "number": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 99.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
           "club": {
             "type": "string",
             "maxLength": 40,
@@ -1327,6 +1503,13 @@
             "minimum": 0.0,
             "title": "Opacity",
             "default": 0.9
+          },
+          "overlay_opacity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Overlay Opacity",
+            "default": 1.0
           },
           "radius": {
             "type": "integer",

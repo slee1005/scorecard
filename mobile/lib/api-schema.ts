@@ -127,6 +127,59 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/course-provider/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Provider Settings */
+    get: operations["provider_settings_api_v1_course_provider_settings_get"];
+    /** Provider Configure */
+    put: operations["provider_configure_api_v1_course_provider_settings_put"];
+    post?: never;
+    /** Provider Clear */
+    delete: operations["provider_clear_api_v1_course_provider_settings_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/course-provider/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Provider Search */
+    get: operations["provider_search_api_v1_course_provider_search_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/course-provider/courses/{course_id}/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Provider Import */
+    post: operations["provider_import_api_v1_course_provider_courses__course_id__import_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/courses": {
     parameters: {
       query?: never;
@@ -416,6 +469,14 @@ export interface components {
       /** Reference File */
       reference_file?: string | null;
     };
+    /** ProviderKey */
+    ProviderKey: {
+      /**
+       * Api Key
+       * Format: password
+       */
+      api_key: string;
+    };
     /** Round */
     Round: {
       /**
@@ -474,6 +535,8 @@ export interface components {
       id?: string;
       /** Hole */
       hole: number;
+      /** Number */
+      number?: number | null;
       /**
        * Club
        * @default Driver
@@ -546,6 +609,11 @@ export interface components {
        * @default 0.9
        */
       opacity: number;
+      /**
+       * Overlay Opacity
+       * @default 1
+       */
+      overlay_opacity: number;
       /**
        * Radius
        * @default 14
@@ -963,6 +1031,143 @@ export interface operations {
         "multipart/form-data": components["schemas"]["Body_reference_api_v1_projects__pid__reference_post"];
       };
     };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  provider_settings_api_v1_course_provider_settings_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  provider_configure_api_v1_course_provider_settings_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProviderKey"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  provider_clear_api_v1_course_provider_settings_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  provider_search_api_v1_course_provider_search_get: {
+    parameters: {
+      query: {
+        q: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  provider_import_api_v1_course_provider_courses__course_id__import_post: {
+    parameters: {
+      query?: {
+        refresh?: boolean;
+      };
+      header?: never;
+      path: {
+        course_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
