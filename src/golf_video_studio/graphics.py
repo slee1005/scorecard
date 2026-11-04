@@ -186,7 +186,8 @@ def _minimal(c: Canvas, p: Project, overlay: Overlay):
 
 
 def _scorecard(c: Canvas, p: Project, overlay: Overlay):
-    r = p.round
+    snapshot = p.snapshots[overlay.snapshot_id]
+    r = snapshot.scorecard_data
     sections = [r.holes[:9], r.holes[9:]] if overlay.type == 'full' else [r.holes[:9] if overlay.type == 'front' else r.holes[9:]]
     k = min(c.w / 688, c.h / (430 if len(sections) == 2 else 292))
     text_scale = c.s.font_size / 24
@@ -194,10 +195,10 @@ def _scorecard(c: Canvas, p: Project, overlay: Overlay):
     c.draw.rectangle(c.box(0, 0, 1, .011), fill=c.accent)
     c.text(c.box(.035, .035, .78, .105), r.player or 'PLAYER', 26 * k * text_scale, align='left')
     if c.s.show_course:
-        metadata = ' · '.join(s for s in (r.course, r.tee, f'CR {r.rating:g}' if r.rating is not None else '', f'SLOPE {r.slope}' if r.slope is not None else '') if s)
+        metadata = ' · '.join(s for s in (r.course, r.tee, f'COURSE PAR {r.course_par}' if r.course_par is not None else '', f'CR {r.rating:g}' if r.rating is not None else '', f'SLOPE {r.slope}' if r.slope is not None else '') if s)
         c.text(c.box(.035, .117, .78, .155), metadata, 11 * k, c.muted, 'left')
     c.text(c.box(.81, .035, .965, .065), 'TO PAR', 10 * k, c.muted, 'right')
-    c.text(c.box(.81, .075, .965, .15), relative_text(totals(r.holes)['relative']), 34 * k * text_scale, c.accent, 'right')
+    c.text(c.box(.81, .075, .965, .15), relative_text(snapshot.relative_to_par), 34 * k * text_scale, c.accent, 'right')
     top, end = .19 * c.h, .79 * c.h
     section_h = (end - top) / len(sections)
     label_w, total_w = c.w * .07, c.w * .085
@@ -217,7 +218,7 @@ def _scorecard(c: Canvas, p: Project, overlay: Overlay):
         for index, hole in enumerate(items):
             cx = center_x(index)
             box = lambda ya, yb: (cx - cell_w * .45, ya, cx + cell_w * .45, yb)
-            c.text(box(row_y[0], row_y[0] + section_h * .13), hole.number, 12 * k, c.muted)
+            c.text(box(row_y[0], row_y[0] + section_h * .13), hole.number, 12 * k, c.accent if hole.status == 'current' else c.muted)
             c.text(box(row_y[1], row_y[1] + section_h * .12), hole.par, 13 * k, c.muted)
             c.text(box(row_y[2], row_y[2] + section_h * .12), hole.yardage, 10 * k, c.muted)
             cy = y + section_h * .865
@@ -231,15 +232,17 @@ def _scorecard(c: Canvas, p: Project, overlay: Overlay):
         c.text(total_box(row_y[2], row_y[2] + section_h * .12), t['yardage'], 10 * k, c.muted)
         c.text(total_box(y + section_h * .75, y + section_h * .98), t['score'], 27 * k * text_scale)
     c.background(c.box(0, .81, 1, .94), c.deep)
-    front, back, all_holes = totals(r.holes[:9]), totals(r.holes[9:]), totals(r.holes)
-    for i, (label, value) in enumerate((('OUT', front['score']), ('IN', back['score']), ('PAR', all_holes['par']))):
+    for i, (label, value) in enumerate((('OUT', snapshot.front_nine_score), ('IN', snapshot.back_nine_score), ('PLAYED PAR', snapshot.total_par))):
         x = .035 + i * .18
-        c.text(c.box(x, .83, x + .065, .865), label, 10 * k, c.muted, 'left')
+        c.text(c.box(x, .83, x + .15, .865), label, 10 * k, c.muted, 'left')
         c.text(c.box(x, .875, x + .10, .922), value, 22 * k * text_scale, align='left')
     c.text(c.box(.70, .84, .805, .91), 'TOTAL', 10 * k, c.muted, 'right')
-    c.text(c.box(.82, .827, .965, .923), all_holes['score'], 38 * k * text_scale, c.accent, 'right')
-    if all_holes['played'] < 18:
-        c.text(c.box(.035, .957, .965, .989), f"{all_holes['played']}/18 PLAYED · ENTERED HOLES ONLY", 9 * k, c.muted, 'left')
+    c.text(c.box(.82, .827, .965, .923), snapshot.total_score, 38 * k * text_scale, c.accent, 'right')
+    if snapshot.completed_holes_count < 18:
+        note = f'{snapshot.completed_holes_count}/18 COMPLETED'
+        if snapshot.current_hole is not None:
+            note += f' · CURRENT HOLE {snapshot.current_hole}'
+        c.text(c.box(.035, .957, .965, .989), note, 9 * k, c.muted, 'left')
     else:
         for i, (score, label) in enumerate(((2, 'EAGLE'), (3, 'BIRDIE'), (4, 'PAR'), (5, 'BOGEY'), (6, 'DOUBLE'))):
             x = .045 + i * .19

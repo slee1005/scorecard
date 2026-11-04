@@ -302,7 +302,7 @@ function renderInspector() {
     const o = p.overlays.find((o) => o.id === S.overlay);
     if (o) {
       const s = o.style;
-      html = `${select("colorTheme", "theme", currentTheme(s), [["custom", t("themeCustom")], ...Object.keys(THEMES).map((k) => [k, t("theme_" + k)])], "theme")}${button("apply-theme-all", t("applyThemeAll"), "wide subtle")}${select(
+      html = `${snapshotInspector(o)}${select("colorTheme", "theme", currentTheme(s), [["custom", t("themeCustom")], ...Object.keys(THEMES).map((k) => [k, t("theme_" + k)])], "theme")}${button("apply-theme-all", t("applyThemeAll"), "wide subtle")}${select(
         "type",
         "type",
         o.type,
@@ -367,7 +367,7 @@ function renderTimeline() {
   const graphics = p.overlays
     .map(
       (o) =>
-        `<button class="marker graphic-marker ${S.overlay === o.id ? "selected" : ""}" data-action="select-overlay" data-id="${o.id}" style="left:${(o.start / d) * 100}%;width:${Math.max(1, ((o.end - o.start) / d) * 100)}%">${esc(t(o.type === "shot" ? "shotType" : o.type === "front" ? "frontType" : o.type === "back" ? "backType" : o.type))}</button>`,
+        `<button class="marker graphic-marker ${o.snapshot_id ? "snapshot-marker" : ""} ${S.overlay === o.id ? "selected" : ""}" aria-label="${esc(graphicLabel(o))}" data-action="select-overlay" data-id="${o.id}" style="left:${(o.start / d) * 100}%;width:${Math.max(1, ((o.end - o.start) / d) * 100)}%">${esc(graphicLabel(o))}</button>`,
     )
     .join("");
   $("#tracks").style.width = width + "%";
@@ -595,28 +595,162 @@ async function addShot() {
   S.tab = "shot";
   render();
 }
-async function addCard() {
-  if (!S.p?.video) return notice(t("chooseVideoFirst"), true);
-  const oid = id(),
-    s = style();
-  Object.assign(s, {
-    ...recommendedGeometry("full", S.p.video),
-    font_size: 24,
-  });
-  await change((p) =>
-    p.overlays.push({
-      id: oid,
-      type: "full",
-      shot_id: null,
-      start: Math.min(S.time, Math.max(0, p.video.duration - 0.1)),
-      end: Math.min(p.video.duration, S.time + 5),
-      visible: true,
-      style: s,
-    }),
+function snapshotSummary(s) {
+  const relative =
+    s.relative_to_par == null
+      ? "—"
+      : s.relative_to_par === 0
+        ? "E"
+        : s.relative_to_par > 0
+          ? "+" + s.relative_to_par
+          : s.relative_to_par;
+  const values = [
+    ["snapshotCurrentHole", s.current_hole ?? t("snapshotRoundComplete")],
+    ["snapshotCompleted", `${s.completed_holes_count}/18`],
+    ["front", s.front_nine_score ?? "—"],
+    ["back", s.back_nine_score ?? "—"],
+    ["snapshotTotal", s.total_score ?? "—"],
+    ["relative", relative],
+    ["snapshotPlayedPar", s.total_par ?? "—"],
+    ["snapshotCoursePar", s.scorecard_data.course_par ?? "—"],
+  ];
+  return `<div class="snapshot-summary">${values.map(([label, value]) => `<div><span>${t(label)}</span><strong>${esc(value)}</strong></div>`).join("")}</div>`;
+}
+function snapshotTable(s) {
+  return `<div class="snapshot-captured-course">${esc(s.scorecard_data.player)} · ${esc(s.scorecard_data.course)} · ${esc(s.scorecard_data.tee)}</div><table class="snapshot-table"><thead><tr><th>${t("hole")}</th><th>${t("par")}</th><th>${t("yardage")}</th><th>${t("score")}</th><th>${t("status")}</th></tr></thead><tbody>${s.scorecard_data.holes.map((h) => `<tr class="${h.status === "current" ? "snapshot-current" : ""}"><td>${h.number}</td><td>${h.par ?? "—"}</td><td>${h.yardage ?? "—"}</td><td>${h.score ?? "—"}</td><td>${t("snapshot_" + h.status)}</td></tr>`).join("")}</tbody></table>`;
+}
+function snapshotInspector(o) {
+  const snap = S.p.snapshots?.[o.snapshot_id];
+  if (!snap) return "";
+  let previous = snap.previous_snapshot_id,
+    history = [],
+    seen = new Set();
+  while (previous && !seen.has(previous)) {
+    seen.add(previous);
+    const old = S.p.snapshots[previous];
+    if (!old) break;
+    history.push(old);
+    previous = old.previous_snapshot_id;
+  }
+  return `<section class="snapshot-inspector"><div class="panel-title"><h3>${t("snapshot")} v${snap.snapshot_version}</h3><span class="tag">${snap.completed_holes_count}/18</span></div><p class="inspector-note">${t("snapshotCaptured")}: ${esc(new Date(snap.created_at).toLocaleString(lang))}<br>${t("snapshotOriginalTime")}: ${fmt(snap.timeline_position)}${snap.legacy ? `<br>${t("snapshotLegacy")}` : ""}</p>${snapshotSummary(snap)}<details><summary>${t("snapshotInspect")}</summary>${snapshotTable(snap)}</details>${history.length ? `<details><summary>${t("snapshotHistory")}</summary>${history.map((old) => `<details><summary>v${old.snapshot_version} · ${old.completed_holes_count}/18 · ${esc(new Date(old.created_at).toLocaleString(lang))}</summary>${snapshotSummary(old)}${snapshotTable(old)}</details>`).join("")}</details>` : ""}<p class="inspector-note">${t("snapshotFrozenHelp")}</p>${button("new-snapshot", t("snapshotCreateNew"), "wide outline")}${button("replace-snapshot", t("snapshotReplace"), "wide subtle")}</section>`;
+}
+function graphicLabel(o) {
+  const kind = t(
+    o.type === "shot"
+      ? "shotType"
+      : o.type === "front"
+        ? "frontType"
+        : o.type === "back"
+          ? "backType"
+          : o.type,
   );
-  S.overlay = oid;
-  S.tab = "design";
-  render();
+  const snap = S.p.snapshots?.[o.snapshot_id];
+  return snap
+    ? `${t("snapshot")} · ${kind} · ${snap.completed_holes_count}/18 · v${snap.snapshot_version}`
+    : kind;
+}
+function snapshotDialogError(e) {
+  const el = $("#snapshot-error");
+  if (el) {
+    el.textContent = e.message;
+    el.hidden = false;
+  } else error(e);
+}
+function renderSnapshotDialog() {
+  const d = S.snapshotDraft,
+    s = d.preview;
+  const options = S.p.round.holes
+    .filter((h) => h.score == null)
+    .map(
+      (h) =>
+        `<option value="${h.number}" ${d.current_hole === h.number ? "selected" : ""}>${t("hole")} ${h.number}</option>`,
+    )
+    .join("");
+  $("#dialog").innerHTML =
+    `<div class="dialog-head"><h2>${t(d.replace ? "snapshotReplace" : "snapshotConfirmTitle")}</h2>${button("close", "×", "icon")}</div><p>${t(d.replace ? "snapshotReplaceWarning" : "snapshotConfirmHelp")}</p><label class="field"><span>${t("snapshotCurrentHole")}</span><select id="snapshot-current-hole"><option value="" ${d.current_hole == null ? "selected" : ""}>${t("automatic")}</option>${options}</select></label>${snapshotSummary(s)}<details><summary>${t("snapshotInspect")}</summary>${snapshotTable(s)}</details><p class="snapshot-error" id="snapshot-error" role="alert" hidden></p><div class="snapshot-actions">${button("close", t("cancel"), "outline")}${button("confirm-snapshot", t(d.replace ? "snapshotReplaceConfirm" : "snapshotAddConfirm"), "primary")}</div>`;
+}
+async function refreshSnapshotPreview() {
+  const d = S.snapshotDraft,
+    selectedHole = d.current_hole;
+  d.ready = false;
+  const confirm = $("[data-action='confirm-snapshot']");
+  if (confirm) confirm.disabled = true;
+  const preview = await api(`/projects/${S.p.id}/scorecard-snapshots/preview`, {
+    method: "POST",
+    body: JSON.stringify({
+      revision: d.revision,
+      timeline_position: d.time,
+      current_hole: selectedHole,
+    }),
+  });
+  // A slower response must not re-enable confirmation for an older selection.
+  if (S.snapshotDraft !== d || d.current_hole !== selectedHole) return;
+  d.preview = preview;
+  d.ready = true;
+  renderSnapshotDialog();
+}
+async function addCard(replace = false) {
+  if (!S.p?.video) return notice(t("chooseVideoFirst"), true);
+  await S.chain;
+  const selected = replace
+    ? S.p.overlays.find((o) => o.id === S.overlay)
+    : null;
+  if (replace && !selected?.snapshot_id) return;
+  const s = style();
+  Object.assign(s, recommendedGeometry("full", S.p.video), { font_size: 24 });
+  S.snapshotDraft = {
+    replace,
+    revision: S.p.revision,
+    time: selected
+      ? selected.start
+      : Math.min(S.time, Math.max(0, S.p.video.duration - 0.1)),
+    current_hole: null,
+    style: s,
+    overlayId: selected?.id,
+    snapshotId: selected?.snapshot_id,
+  };
+  await refreshSnapshotPreview();
+  $("#dialog").showModal();
+}
+async function confirmSnapshot(buttonElement) {
+  const d = S.snapshotDraft;
+  if (!d?.ready) return;
+  buttonElement.disabled = true;
+  try {
+    const path = d.replace
+      ? `/projects/${S.p.id}/scorecard-snapshots/${d.snapshotId}/replace`
+      : `/projects/${S.p.id}/scorecard-snapshots`;
+    const body = d.replace
+      ? {
+          revision: d.revision,
+          overlay_id: d.overlayId,
+          current_hole: d.current_hole,
+          confirm_replace: true,
+        }
+      : {
+          revision: d.revision,
+          timeline_position: d.time,
+          current_hole: d.current_hole,
+          type: "full",
+          duration: 5,
+          style: d.style,
+        };
+    const result = await api(path, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    S.overlay = result.created_overlay_id;
+    S.tab = "design";
+    S.snapshotDraft = null;
+    $("#dialog").close();
+    setProject(result);
+    $("#video").currentTime = d.time;
+    notice(t(d.replace ? "snapshotReplaced" : "snapshotAdded"));
+  } catch (e) {
+    snapshotDialogError(e);
+  } finally {
+    buttonElement.disabled = false;
+  }
 }
 async function action(name, el) {
   switch (name) {
@@ -668,6 +802,15 @@ async function action(name, el) {
       break;
     case "add-card":
       await addCard();
+      break;
+    case "new-snapshot":
+      await addCard();
+      break;
+    case "replace-snapshot":
+      await addCard(true);
+      break;
+    case "confirm-snapshot":
+      await confirmSnapshot(el);
       break;
     case "select-shot": {
       S.shot = el.dataset.id;
@@ -924,6 +1067,7 @@ async function action(name, el) {
       $("#dialog").close();
       break;
     case "close":
+      S.snapshotDraft = null;
       $("#dialog").close();
       break;
     case "dismiss":
@@ -938,6 +1082,15 @@ document.addEventListener("click", (e) => {
 document.addEventListener("change", async (e) => {
   const el = e.target;
   try {
+    if (el.id === "snapshot-current-hole") {
+      S.snapshotDraft.current_hole = el.value === "" ? null : Number(el.value);
+      try {
+        await refreshSnapshotPreview();
+      } catch (e) {
+        snapshotDialogError(e);
+      }
+      return;
+    }
     if (el.id === "language") {
       setLang(el.value);
       $("#video").pause();

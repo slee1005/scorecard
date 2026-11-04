@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from PIL import Image, ImageChops, ImageDraw
 
-from golf_video_studio import graphics
+from golf_video_studio import graphics, snapshots
 from golf_video_studio.models import Hole, Overlay, Project, Round, Shot, Style, Video
 
 
@@ -60,7 +60,9 @@ def test_full_scorecard_rows_have_exactly_nine_shared_column_centers(monkeypatch
         centers.append(center)
         return original(draw,center,*args,**kwargs)
     monkeypatch.setattr(graphics,'score_symbol',record)
-    graphics.panel(p,Overlay(type='full',style=Style(x=.04,y=.04,width=.5,height=.56)))
+    snap=snapshots.capture(p,0)
+    p.snapshots[snap.id]=snap
+    graphics.panel(p,Overlay(type='full',snapshot_id=snap.id,style=Style(x=.04,y=.04,width=.5,height=.56)))
     centers=[center for center in centers if center[1] < .8 * round(.56 * 1080)]
     assert len(centers)==18
     assert [x for x,y in centers[:9]]==[x for x,y in centers[9:]]
@@ -75,6 +77,10 @@ def test_layouts_are_rgba_nonempty_and_respect_overall_transparency(kind,dimensi
     p.video=Video(filename='test.mp4',duration=10,width=dimensions[0],height=dimensions[1],fps=30,has_audio=False)
     style=Style(x=.04,y=.04,width=.7,height=.5,color='#20312d',background='#f5f1e8',accent='#166b59')
     o=Overlay(type=kind,shot_id=p.shots[0].id if kind in ('shot','minimal') else None,style=style)
+    if kind in ('full','front','back'):
+        snap=snapshots.capture(p,0)
+        p.snapshots[snap.id]=snap
+        o.snapshot_id=snap.id
     image=graphics.panel(p,o)
     assert image.mode=='RGBA' and image.getchannel('A').getbbox() is not None
     o.style.overlay_opacity=0

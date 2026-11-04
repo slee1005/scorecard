@@ -1,4 +1,49 @@
 const en = {
+  snapshot: "Snapshot",
+  cancel: "Cancel",
+  snapshotCurrentHole: "Current hole",
+  snapshotCompleted: "Completed holes",
+  snapshotRoundComplete: "Round complete",
+  snapshotTotal: "Captured total",
+  snapshotPlayedPar: "Completed-hole par",
+  snapshotCoursePar: "Full-course par",
+  snapshotCaptured: "Captured at",
+  snapshotOriginalTime: "Original timeline position",
+  snapshotLegacy:
+    "Migrated from the previously saved live card; original insertion scores were not recorded.",
+  snapshotInspect: "Inspect captured 18-hole data",
+  snapshotHistory: "Previous snapshot versions",
+  snapshotFrozenHelp:
+    "This scorecard keeps its captured data. Later round edits do not change it. Styles and timing remain editable.",
+  snapshotCreateNew: "Create new scorecard snapshot",
+  snapshotReplace: "Replace snapshot data",
+  snapshotConfirmTitle: "Capture scorecard snapshot",
+  snapshotConfirmHelp:
+    "Capture the currently entered scores at this video position. Future score entries will not update this card.",
+  snapshotReplaceWarning:
+    "Replace only the selected card with the current round data? The previous snapshot version will be retained.",
+  snapshotReplaceConfirm: "Confirm data replacement",
+  snapshotAddConfirm: "Add snapshot to timeline",
+  snapshotAdded: "Scorecard snapshot added",
+  snapshotReplaced: "New snapshot version applied; previous version preserved",
+  snapshot_completed: "Completed",
+  snapshot_current: "Current",
+  snapshot_not_played: "Not played",
+  snapshot_current_completed:
+    "Choose a hole without a completed score as the current hole.",
+  snapshot_stale_project:
+    "The project changed. Reload the project and reopen the snapshot confirmation before proceeding.",
+  snapshot_read_only:
+    "Captured score data is read-only. Use the explicit snapshot replacement action.",
+  snapshot_use_capture_action:
+    "Use the snapshot capture action to add or replace a scorecard.",
+  snapshot_invalid_time: "Choose a timeline position inside the source video.",
+  snapshot_layout_collision:
+    "This card overlaps another graphic. Choose another time or adjust existing graphic placement first.",
+  snapshot_confirm_replace: "Confirm snapshot data replacement first.",
+  snapshot_not_found: "Snapshot or selected card not found.",
+  snapshot_history_limit:
+    "The project has reached its 1,000 snapshot history limit.",
   applyThemeAll: "Apply colors to all graphics",
   fitLayout: "Use recommended layout",
   theme_midnight: "Midnight",
@@ -95,7 +140,7 @@ const en = {
   timeline: "TIMELINE",
   zoom: "Timeline zoom",
   addShot: "Add shot",
-  addCard: "Add scorecard",
+  addCard: "Add scorecard snapshot",
   shots: "Shots",
   graphics: "Graphics",
   noShots: "Add a shot to start your timeline.",
@@ -261,6 +306,50 @@ const en = {
   untitled: "Untitled round",
 };
 const ko = {
+  snapshot: "스냅샷",
+  cancel: "취소",
+  snapshotCurrentHole: "현재 홀",
+  snapshotCompleted: "완료한 홀",
+  snapshotRoundComplete: "라운드 완료",
+  snapshotTotal: "캡처 합계",
+  snapshotPlayedPar: "완료한 홀의 파",
+  snapshotCoursePar: "코스 전체 파",
+  snapshotCaptured: "캡처 시각",
+  snapshotOriginalTime: "최초 삽입 위치",
+  snapshotLegacy:
+    "기존 카드의 저장값을 이관했습니다. 최초 삽입 당시 점수 기록은 없습니다.",
+  snapshotInspect: "캡처된 18홀 데이터 보기",
+  snapshotHistory: "이전 스냅샷 버전",
+  snapshotFrozenHelp:
+    "이 카드는 캡처한 데이터를 유지합니다. 이후 라운드 편집은 반영되지 않으며 스타일과 시간은 계속 편집할 수 있습니다.",
+  snapshotCreateNew: "새 스코어카드 스냅샷 만들기",
+  snapshotReplace: "스냅샷 점수 교체",
+  snapshotConfirmTitle: "스코어카드 스냅샷 캡처",
+  snapshotConfirmHelp:
+    "현재 영상 위치에 입력된 점수를 고정합니다. 나중에 입력한 점수는 이 카드에 반영되지 않습니다.",
+  snapshotReplaceWarning:
+    "선택한 카드만 현재 라운드 데이터로 교체할까요? 이전 스냅샷 버전은 보존됩니다.",
+  snapshotReplaceConfirm: "점수 교체 확인",
+  snapshotAddConfirm: "타임라인에 스냅샷 추가",
+  snapshotAdded: "스코어카드 스냅샷을 추가했습니다",
+  snapshotReplaced: "새 스냅샷 버전을 적용했습니다. 이전 버전은 보존했습니다",
+  snapshot_completed: "완료",
+  snapshot_current: "진행 중",
+  snapshot_not_played: "미진행",
+  snapshot_current_completed: "완료 스코어가 없는 홀을 현재 홀로 선택하세요.",
+  snapshot_stale_project:
+    "프로젝트가 변경되었습니다. 다시 불러온 후 스냅샷 확인 화면을 다시 여세요.",
+  snapshot_read_only:
+    "캡처한 점수는 직접 수정할 수 없습니다. 스냅샷 점수 교체 기능을 사용하세요.",
+  snapshot_use_capture_action:
+    "스냅샷 캡처 기능으로 스코어카드를 추가하거나 교체하세요.",
+  snapshot_invalid_time: "원본 영상 범위 안의 타임라인 위치를 선택하세요.",
+  snapshot_layout_collision:
+    "이 카드가 다른 그래픽과 겹칩니다. 다른 시간을 선택하거나 기존 그래픽 위치를 먼저 조절하세요.",
+  snapshot_confirm_replace: "스냅샷 점수 교체를 먼저 확인하세요.",
+  snapshot_not_found: "스냅샷 또는 선택한 카드를 찾지 못했습니다.",
+  snapshot_history_limit:
+    "프로젝트의 스냅샷 기록 한도(1,000개)에 도달했습니다.",
   applyThemeAll: "모든 그래픽에 색상 적용",
   fitLayout: "추천 크기 · 위치 적용",
   theme_midnight: "미드나이트",
@@ -358,7 +447,7 @@ const ko = {
   timeline: "타임라인",
   zoom: "타임라인 확대",
   addShot: "샷 추가",
-  addCard: "스코어카드 추가",
+  addCard: "스코어카드 스냅샷 추가",
   shots: "샷",
   graphics: "그래픽",
   noShots: "샷을 추가하여 타임라인을 시작하세요.",

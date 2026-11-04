@@ -146,10 +146,99 @@ class Style(Model):
         return self
 
 
+class FrozenModel(Model):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, frozen=True)
+
+
+class SnapshotHole(FrozenModel):
+    number: int = Field(ge=1, le=18)
+    par: int | None = Field(default=None, ge=3, le=6)
+    score: int | None = Field(default=None, ge=1, le=40)
+    yardage: int | None = Field(default=None, ge=1, le=1000)
+    handicap: int | None = Field(default=None, ge=1, le=18)
+    status: Literal["completed", "current", "not_played"]
+    relative_to_par: int | None = None
+
+    @model_validator(mode="after")
+    def coherent(self):
+        if (self.status == 'completed') != (self.score is not None):
+            raise ValueError('Only completed holes may have scores')
+        expected = self.score - self.par if self.score is not None and self.par is not None else None
+        if self.relative_to_par != expected:
+            raise ValueError('Invalid captured hole comparison')
+        return self
+
+
+class ScorecardData(FrozenModel):
+    player: str = Field(default="", max_length=120)
+    course: str = Field(default="", max_length=160)
+    date: str = ""
+    tee: str = Field(default="", max_length=80)
+    category: str = Field(default="", max_length=80)
+    rating: float | None = None
+    slope: int | None = None
+    course_par: int | None = None
+    published_course_par: int | None = None
+    total_yardage: int | None = None
+    source_name: str = ""
+    source_url: str = ""
+    reference_course_id: str | None = None
+    holes: tuple[SnapshotHole, ...] = Field(min_length=18, max_length=18)
+
+    @model_validator(mode="after")
+    def ordered_holes(self):
+        if [h.number for h in self.holes] != list(range(1,19)):
+            raise ValueError('Snapshot requires ordered holes 1–18')
+        return self
+
+
+def snapshot_totals(items: tuple[SnapshotHole, ...]) -> dict:
+    completed = [h for h in items if h.status == 'completed']
+    def score(holes):
+        values = [h.score for h in holes if h.status == 'completed']
+        return sum(values) if values else None
+    total = score(items)
+    # An unknown played-hole par makes the comparison unknown, never guessed.
+    par = sum(h.par for h in completed) if completed and all(h.par is not None for h in completed) else None
+    return dict(completed_holes_count=len(completed), front_nine_score=score(items[:9]),
+        back_nine_score=score(items[9:]), total_score=total, total_par=par,
+        relative_to_par=total-par if total is not None and par is not None else None)
+
+
+class ScorecardSnapshot(FrozenModel):
+    id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    project_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    round_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    timeline_position: float = Field(ge=0, le=86400)
+    created_at: str
+    snapshot_version: int = Field(default=1, ge=1)
+    previous_snapshot_id: str | None = None
+    legacy: bool = False
+    current_hole: int | None = Field(default=None, ge=1, le=18)
+    completed_holes_count: int = Field(ge=0, le=18)
+    scorecard_data: ScorecardData
+    front_nine_score: int | None
+    back_nine_score: int | None
+    total_score: int | None
+    total_par: int | None
+    relative_to_par: int | None
+
+    @model_validator(mode="after")
+    def valid_capture(self):
+        for key, expected in snapshot_totals(self.scorecard_data.holes).items():
+            if getattr(self,key) != expected:
+                raise ValueError('Snapshot totals must match completed holes')
+        current = [h.number for h in self.scorecard_data.holes if h.status == 'current']
+        if current != ([] if self.current_hole is None else [self.current_hole]):
+            raise ValueError('Invalid captured current hole')
+        return self
+
+
 class Overlay(Model):
     id: str = Field(default_factory=uid, pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     type: Literal["shot", "minimal", "full", "front", "back"] = "shot"
     shot_id: str | None = None
+    snapshot_id: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}$")
     start: float = Field(default=0, ge=0, le=86400)
     end: float = Field(default=5, gt=0, le=86400)
     visible: bool = True
@@ -181,6 +270,7 @@ class Project(Model):
     shots: list[Shot] = Field(default_factory=list, max_length=500)
     overlays: list[Overlay] = Field(default_factory=list, max_length=200)
     video: Video | None = None
+    snapshots: dict[str, ScorecardSnapshot] = Field(default_factory=dict, max_length=1000)
     presets: dict[str, Style] = Field(default_factory=dict, max_length=30)
     reference_file: str | None = None
 
@@ -207,6 +297,32 @@ class Project(Model):
                 if (a.style.x < b.style.x + b.style.width and b.style.x < a.style.x + a.style.width
                         and a.style.y < b.style.y + b.style.height and b.style.y < a.style.y + a.style.height):
                     raise ValueError("Overlapping overlay panels")
+        # Old projects had live cards. Freeze their saved state once; the storage
+        # loader persists this migration before allowing future round edits.
+        from .snapshots import capture
+        from uuid import NAMESPACE_URL, uuid5
+        for overlay in self.overlays:
+            if overlay.type in ('shot','minimal'):
+                if overlay.snapshot_id is not None:
+                    raise ValueError('Shot graphics cannot reference scorecard snapshots')
+                continue
+            if overlay.snapshot_id is None:
+                key = uuid5(NAMESPACE_URL,f'gvs:{self.id}:{overlay.id}:legacy').hex
+                snap = capture(self,overlay.start,legacy=True,snapshot_id=key)
+                self.snapshots[key] = snap
+                overlay.snapshot_id = key
+            if overlay.snapshot_id not in self.snapshots:
+                raise ValueError('Scorecard snapshot not found')
+        if len(self.snapshots) > 1000:
+            raise ValueError('Snapshot history limit reached')
+        for key, snap in self.snapshots.items():
+            if key != snap.id or snap.project_id != self.id or snap.round_id != self.id:
+                raise ValueError('Snapshot belongs to another project or round')
+            previous = self.snapshots.get(snap.previous_snapshot_id) if snap.previous_snapshot_id else None
+            if snap.snapshot_version != (previous.snapshot_version + 1 if previous else 1):
+                raise ValueError('Invalid snapshot history')
+            if snap.previous_snapshot_id and previous is None:
+                raise ValueError('Previous snapshot is missing')
         return self
 
 

@@ -34,15 +34,35 @@ def connect():
 
 def projects() -> list[Project]:
     with connect() as db:
-        return sorted([Project.model_validate_json(r[0]) for r in db.execute("SELECT data FROM projects")], key=lambda p: p.updated_at, reverse=True)
+        ids = [row[0] for row in db.execute('SELECT id FROM projects')]
+    return sorted([load(pid) for pid in ids], key=lambda p:p.updated_at, reverse=True)
 
 
 def load(pid: str) -> Project:
-    with connect() as db:
-        row = db.execute("SELECT data FROM projects WHERE id=?", (pid,)).fetchone()
-    if not row:
-        raise HTTPException(404, "Project not found")
-    return Project.model_validate_json(row[0])
+    for _ in range(3):
+        with connect() as db:
+            row = db.execute('SELECT data FROM projects WHERE id=?',(pid,)).fetchone()
+            if not row:
+                raise HTTPException(404,'Project not found')
+            raw = row[0]
+            data = json.loads(raw)
+            p = Project.model_validate(data)
+            migrate = any(o.get('type') in ('full','front','back') and not o.get('snapshot_id') for o in data.get('overlays',[]))
+            if not migrate:
+                return p
+            expected = p.revision
+            p.revision += 1
+            # A lease on both revision and original JSON prevents a read migration
+            # from overwriting another window's score edit or a competing migration.
+            result = db.execute('UPDATE projects SET revision=?,data=? WHERE id=? AND revision=? AND data=?',
+                (p.revision,p.model_dump_json(),pid,expected,raw))
+            if result.rowcount == 1:
+                return p
+    raise HTTPException(409,'Project changed while upgrading scorecards. Reload.')
+
+
+def migrate_snapshots():
+    projects()
 
 
 def create(p: Project) -> Project:

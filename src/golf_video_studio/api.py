@@ -13,17 +13,19 @@ from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Query
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ValidationError, SecretStr
+from pydantic import BaseModel, ValidationError, SecretStr, Field
 
-from . import rendering, storage, course_api
+from . import rendering, storage, course_api, snapshots
 from .graphics import png
-from .models import Course, Hole, Project, Tee, Video, totals, uid
+from .models import Course, Hole, Project, Tee, Video, Style, Overlay, totals, uid
+from typing import Literal
 
 WEB = Path(__file__).parent/'web'
 
 
 @asynccontextmanager
 async def lifespan(app):
+    storage.migrate_snapshots()
     rendering.recover()
     yield
 
@@ -96,11 +98,96 @@ def get_project(pid: str):
 @app.put('/api/v1/projects/{pid}')
 def put_project(pid: str, body: Project):
     old = storage.load(pid)
+    if body.revision != old.revision:
+        raise HTTPException(409, 'snapshot_stale_project')
+    if body.snapshots != old.snapshots:
+        raise HTTPException(422, 'snapshot_read_only')
+    old_cards = {o.id:o for o in old.overlays if o.type in ('full','front','back')}
+    for overlay in body.overlays:
+        if overlay.type in ('full','front','back'):
+            previous = old_cards.get(overlay.id)
+            if previous is None or overlay.snapshot_id != previous.snapshot_id:
+                raise HTTPException(422, 'snapshot_use_capture_action')
     if (pid != body.id or body.video != old.video or body.reference_file != old.reference_file
             or body.created_at != old.created_at or body.round.reference != old.round.reference
             or body.round.reference_tee_id != old.round.reference_tee_id):
         raise HTTPException(422,'Server-managed fields cannot be changed')
     return summary(storage.save(body))
+
+
+class SnapshotPreview(BaseModel):
+    revision: int = Field(ge=0)
+    timeline_position: float = Field(ge=0, le=86400)
+    current_hole: int | None = Field(default=None, ge=1, le=18)
+
+
+class SnapshotInsert(SnapshotPreview):
+    type: Literal['full','front','back'] = 'full'
+    duration: float = Field(default=5,gt=0,le=86400)
+    style: Style | None = None
+
+
+class SnapshotReplace(BaseModel):
+    revision: int = Field(ge=0)
+    overlay_id: str
+    current_hole: int | None = Field(default=None,ge=1,le=18)
+    confirm_replace: bool = False
+
+
+def _capture_project(pid: str, revision: int) -> Project:
+    p = storage.load(pid)
+    if p.revision != revision:
+        raise HTTPException(409,'snapshot_stale_project')
+    return p
+
+
+def _snapshot_capacity(p: Project):
+    if len(p.snapshots) >= 1000:
+        raise HTTPException(422,'snapshot_history_limit')
+
+
+@app.post('/api/v1/projects/{pid}/scorecard-snapshots/preview')
+def preview_snapshot(pid: str, body: SnapshotPreview):
+    p = _capture_project(pid,body.revision)
+    if not p.video or body.timeline_position >= p.video.duration:
+        raise HTTPException(422,'snapshot_invalid_time')
+    return snapshots.capture(p,body.timeline_position,body.current_hole)
+
+
+@app.post('/api/v1/projects/{pid}/scorecard-snapshots',status_code=201)
+def insert_snapshot(pid: str, body: SnapshotInsert):
+    p = _capture_project(pid,body.revision)
+    if not p.video or body.timeline_position >= p.video.duration:
+        raise HTTPException(422,'snapshot_invalid_time')
+    _snapshot_capacity(p)
+    snap = snapshots.capture(p,body.timeline_position,body.current_hole)
+    overlay = Overlay(type=body.type,snapshot_id=snap.id,start=body.timeline_position,
+        end=min(body.timeline_position+body.duration,p.video.duration),style=body.style or snapshots.card_style(p,body.type))
+    p.snapshots[snap.id] = snap
+    p.overlays.append(overlay)
+    try:
+        p = Project.model_validate(p.model_dump())
+    except ValidationError:
+        raise HTTPException(422,'snapshot_layout_collision') from None
+    result = summary(storage.save(p))
+    return {**result,'created_overlay_id':overlay.id,'created_snapshot_id':snap.id}
+
+
+@app.post('/api/v1/projects/{pid}/scorecard-snapshots/{snapshot_id}/replace')
+def replace_snapshot(pid: str, snapshot_id: str, body: SnapshotReplace):
+    p = _capture_project(pid,body.revision)
+    if not body.confirm_replace:
+        raise HTTPException(409,'snapshot_confirm_replace')
+    overlay = next((o for o in p.overlays if o.id == body.overlay_id and o.snapshot_id == snapshot_id),None)
+    old = p.snapshots.get(snapshot_id)
+    if overlay is None or old is None:
+        raise HTTPException(404,'snapshot_not_found')
+    _snapshot_capacity(p)
+    snap = snapshots.capture(p,overlay.start,body.current_hole,previous=old)
+    p.snapshots[snap.id] = snap
+    overlay.snapshot_id = snap.id
+    p = Project.model_validate(p.model_dump())
+    return {**summary(storage.save(p)),'created_snapshot_id':snap.id,'created_overlay_id':overlay.id}
 
 
 @app.post('/api/v1/projects/{pid}/video')

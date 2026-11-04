@@ -17,7 +17,7 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 69 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 75 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -117,6 +117,16 @@ npx expo export --platform ios --platform android
 ```
 
 Tests cover scoring and partial-round totals, score categories, shot numbering, half-open visibility, collisions/bounds, optimistic concurrency, atomic CSV imports, course snapshots/overrides, Host/Origin checks, RGBA panels, portrait proportions, restart recovery, and a real FFmpeg MP4 export with synthetic video/audio. The export test checks codecs, audio/video start and duration, timed graphic presence/absence and frame similarity with the shared preview panel. GolfCourseAPI tests verify credential isolation, HTTP error redaction, caching, exact tee/category mapping, missing holes and immutable refreshes. Theme/numbering/layout tests and the real export cover manual shot numbers, global alpha and simultaneous modern shot/full-scorecard graphics. Pixel tests verify marker/digit centers for three font families; layout tests cover portrait and landscape footage. Tests make no live provider calls, and test videos are not committed. Mobile JS bundling is not a signed native build or on-device test.
+
+## Scorecard snapshots
+
+**Add scorecard snapshot** previews the current hole, completed count, front/back scores, current total and relative score before confirmation. Each full/front/back card captures independent player/course/tee and all 18 holes at that revision. Unplayed holes remain dashes; the current hole is highlighted. **Played par** includes completed holes only and is separate from **Course par**. An unknown completed-hole par leaves relative score unknown.
+
+Timeline labels show the captured hole count and version. Select a card in **Design** to inspect its creation time, original insertion time and captured scores. Moving, resizing, changing duration, colors or transparency never refreshes its data. **Create new scorecard snapshot** captures a later state. **Replace snapshot data** requires confirmation, changes only the selected overlay and retains its previous versions for inspection. A score change in another window invalidates an open confirmation; reload and preview again.
+
+Existing live cards are frozen once from their currently saved round and labeled migrated snapshots; original insertion-time scores cannot be reconstructed. This upgrade increments the project revision, so old offline drafts must resolve a conflict rather than overwrite the migration. Deleted overlays retain their captured history in the project backup. Each project supports up to 1,000 captures including previous versions. One project contains one round; its project ID is also the snapshot round ID.
+
+The Expo Videos screen uses the same revision-checked capture/replace APIs, confirmation summaries, version history and backend PNG rendering as the web editor. Insert at the current native playhead; use the web editor for detailed timing and styling. Capturing requires a successful sync/connection. Automated tests cover 5/9/18-hole captures, later corrections, explicit replacement, migration, immutable fields, completed-only totals and three historical cards pixel-compared against an actual MP4 export. Native TypeScript/bundle checks do not establish iOS/Android device behavior; device acceptance testing remains pending.
 
 ## Structure
 

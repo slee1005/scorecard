@@ -153,6 +153,156 @@
         }
       }
     },
+    "/api/v1/projects/{pid}/scorecard-snapshots/preview": {
+      "post": {
+        "summary": "Preview Snapshot",
+        "operationId": "preview_snapshot_api_v1_projects__pid__scorecard_snapshots_preview_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnapshotPreview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{pid}/scorecard-snapshots": {
+      "post": {
+        "summary": "Insert Snapshot",
+        "operationId": "insert_snapshot_api_v1_projects__pid__scorecard_snapshots_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnapshotInsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{pid}/scorecard-snapshots/{snapshot_id}/replace": {
+      "post": {
+        "summary": "Replace Snapshot",
+        "operationId": "replace_snapshot_api_v1_projects__pid__scorecard_snapshots__snapshot_id__replace_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnapshotReplace"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{pid}/video": {
       "post": {
         "summary": "Upload Video",
@@ -845,7 +995,9 @@
           }
         },
         "type": "object",
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "title": "Body_import_holes_api_v1_projects__pid__holes_csv_post"
       },
       "Body_reference_api_v1_projects__pid__reference_post": {
@@ -857,7 +1009,9 @@
           }
         },
         "type": "object",
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "title": "Body_reference_api_v1_projects__pid__reference_post"
       },
       "Body_upload_video_api_v1_projects__pid__video_post": {
@@ -869,7 +1023,9 @@
           }
         },
         "type": "object",
-        "required": ["file"],
+        "required": [
+          "file"
+        ],
         "title": "Body_upload_video_api_v1_projects__pid__video_post"
       },
       "Course": {
@@ -935,7 +1091,10 @@
           },
           "verification": {
             "type": "string",
-            "enum": ["manual", "imported"],
+            "enum": [
+              "manual",
+              "imported"
+            ],
             "title": "Verification",
             "default": "manual"
           },
@@ -956,7 +1115,10 @@
         },
         "additionalProperties": false,
         "type": "object",
-        "required": ["name", "tees"],
+        "required": [
+          "name",
+          "tees"
+        ],
         "title": "Course"
       },
       "Export": {
@@ -977,7 +1139,9 @@
           }
         },
         "type": "object",
-        "required": ["revision"],
+        "required": [
+          "revision"
+        ],
         "title": "Export"
       },
       "HTTPValidationError": {
@@ -1056,7 +1220,9 @@
         },
         "additionalProperties": false,
         "type": "object",
-        "required": ["number"],
+        "required": [
+          "number"
+        ],
         "title": "Hole"
       },
       "NewProject": {
@@ -1079,7 +1245,13 @@
           },
           "type": {
             "type": "string",
-            "enum": ["shot", "minimal", "full", "front", "back"],
+            "enum": [
+              "shot",
+              "minimal",
+              "full",
+              "front",
+              "back"
+            ],
             "title": "Type",
             "default": "shot"
           },
@@ -1093,6 +1265,18 @@
               }
             ],
             "title": "Shot Id"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
           },
           "start": {
             "type": "number",
@@ -1180,6 +1364,14 @@
               }
             ]
           },
+          "snapshots": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ScorecardSnapshot"
+            },
+            "type": "object",
+            "maxProperties": 1000,
+            "title": "Snapshots"
+          },
           "presets": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Style"
@@ -1214,7 +1406,9 @@
           }
         },
         "type": "object",
-        "required": ["api_key"],
+        "required": [
+          "api_key"
+        ],
         "title": "ProviderKey"
       },
       "Round": {
@@ -1335,6 +1529,275 @@
         "type": "object",
         "title": "Round"
       },
+      "ScorecardData": {
+        "properties": {
+          "player": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Player",
+            "default": ""
+          },
+          "course": {
+            "type": "string",
+            "maxLength": 160,
+            "title": "Course",
+            "default": ""
+          },
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "default": ""
+          },
+          "tee": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Tee",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Category",
+            "default": ""
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "slope": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slope"
+          },
+          "course_par": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Par"
+          },
+          "published_course_par": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published Course Par"
+          },
+          "total_yardage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Yardage"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name",
+            "default": ""
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url",
+            "default": ""
+          },
+          "reference_course_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Course Id"
+          },
+          "holes": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotHole"
+            },
+            "type": "array",
+            "maxItems": 18,
+            "minItems": 18,
+            "title": "Holes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "holes"
+        ],
+        "title": "ScorecardData"
+      },
+      "ScorecardSnapshot": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Id"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Project Id"
+          },
+          "round_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Round Id"
+          },
+          "timeline_position": {
+            "type": "number",
+            "maximum": 86400.0,
+            "minimum": 0.0,
+            "title": "Timeline Position"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "snapshot_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Snapshot Version",
+            "default": 1
+          },
+          "previous_snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Snapshot Id"
+          },
+          "legacy": {
+            "type": "boolean",
+            "title": "Legacy",
+            "default": false
+          },
+          "current_hole": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 18.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Hole"
+          },
+          "completed_holes_count": {
+            "type": "integer",
+            "maximum": 18.0,
+            "minimum": 0.0,
+            "title": "Completed Holes Count"
+          },
+          "scorecard_data": {
+            "$ref": "#/components/schemas/ScorecardData"
+          },
+          "front_nine_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Front Nine Score"
+          },
+          "back_nine_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Back Nine Score"
+          },
+          "total_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Score"
+          },
+          "total_par": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Par"
+          },
+          "relative_to_par": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative To Par"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "project_id",
+          "round_id",
+          "timeline_position",
+          "created_at",
+          "completed_holes_count",
+          "scorecard_data",
+          "front_nine_score",
+          "back_nine_score",
+          "total_score",
+          "total_par",
+          "relative_to_par"
+        ],
+        "title": "ScorecardSnapshot"
+      },
       "Selection": {
         "properties": {
           "course_id": {
@@ -1356,7 +1819,11 @@
           }
         },
         "type": "object",
-        "required": ["course_id", "tee_id", "revision"],
+        "required": [
+          "course_id",
+          "tee_id",
+          "revision"
+        ],
         "title": "Selection"
       },
       "Shot": {
@@ -1446,8 +1913,231 @@
         },
         "additionalProperties": false,
         "type": "object",
-        "required": ["hole"],
+        "required": [
+          "hole"
+        ],
         "title": "Shot"
+      },
+      "SnapshotHole": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "maximum": 18.0,
+            "minimum": 1.0,
+            "title": "Number"
+          },
+          "par": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 6.0,
+                "minimum": 3.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Par"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 40.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "yardage": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yardage"
+          },
+          "handicap": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 18.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handicap"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "current",
+              "not_played"
+            ],
+            "title": "Status"
+          },
+          "relative_to_par": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative To Par"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "number",
+          "status"
+        ],
+        "title": "SnapshotHole"
+      },
+      "SnapshotInsert": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "timeline_position": {
+            "type": "number",
+            "maximum": 86400.0,
+            "minimum": 0.0,
+            "title": "Timeline Position"
+          },
+          "current_hole": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 18.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Hole"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "full",
+              "front",
+              "back"
+            ],
+            "title": "Type",
+            "default": "full"
+          },
+          "duration": {
+            "type": "number",
+            "maximum": 86400.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Duration",
+            "default": 5
+          },
+          "style": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Style"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "timeline_position"
+        ],
+        "title": "SnapshotInsert"
+      },
+      "SnapshotPreview": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "timeline_position": {
+            "type": "number",
+            "maximum": 86400.0,
+            "minimum": 0.0,
+            "title": "Timeline Position"
+          },
+          "current_hole": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 18.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Hole"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "timeline_position"
+        ],
+        "title": "SnapshotPreview"
+      },
+      "SnapshotReplace": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "overlay_id": {
+            "type": "string",
+            "title": "Overlay Id"
+          },
+          "current_hole": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 18.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Hole"
+          },
+          "confirm_replace": {
+            "type": "boolean",
+            "title": "Confirm Replace",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "overlay_id"
+        ],
+        "title": "SnapshotReplace"
       },
       "Style": {
         "properties": {
@@ -1527,7 +2217,11 @@
           },
           "font": {
             "type": "string",
-            "enum": ["sans", "serif", "mono"],
+            "enum": [
+              "sans",
+              "serif",
+              "mono"
+            ],
             "title": "Font",
             "default": "sans"
           },
@@ -1694,7 +2388,9 @@
         },
         "additionalProperties": false,
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "Tee"
       },
       "ValidationError": {
@@ -1730,7 +2426,11 @@
           }
         },
         "type": "object",
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError"
       },
       "Video": {

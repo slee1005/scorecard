@@ -1603,3 +1603,90 @@ dialog p {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
+
+.snapshot-marker {
+  background: #23473f;
+  border-left-color: #5fc9a7;
+}
+.snapshot-inspector {
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.snapshot-inspector .panel-title {
+  margin-bottom: 8px;
+}
+.snapshot-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 16px 0;
+}
+.snapshot-summary > div {
+  padding: 10px;
+  background: #162630;
+  border: 1px solid #29404a;
+  border-radius: 6px;
+  min-width: 0;
+}
+.snapshot-summary span {
+  display: block;
+  font-size: 10px;
+  color: #9ab0bb;
+  line-height: 1.4;
+}
+.snapshot-summary strong {
+  display: block;
+  font-size: 19px;
+  font-weight: 500;
+  margin-top: 6px;
+  color: #d9f0e9;
+}
+.snapshot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  margin-top: 10px;
+  text-align: center;
+}
+.snapshot-table td,
+.snapshot-table th {
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+}
+.snapshot-table th {
+  color: #98b6bf;
+}
+.snapshot-current {
+  background: #1c3b35;
+  color: #9ce1ca;
+}
+.snapshot-captured-course {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #b2c9d1;
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+}
+.snapshot-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 23px;
+}
+.snapshot-error {
+  color: #f1b7a7;
+  font-size: 12px;
+  line-height: 1.8;
+  margin-top: 14px;
+}
+.snapshot-inspector details {
+  margin-top: 13px;
+  color: #b3c9d3;
+  font-size: 11px;
+}
+.snapshot-inspector details summary {
+  line-height: 1.6;
+}

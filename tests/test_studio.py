@@ -160,8 +160,13 @@ def test_real_export_audio_timing_and_graphics(client,tmp_path):
     s=Shot(hole=1,number=7,start=.5,end=1.5)
     o=Overlay(shot_id=s.id,start=.5,end=1.5,style=Style(background="#122d24",color="#f4f8e8",accent="#b6d87d",opacity=.7,overlay_opacity=.6))
     card=Overlay(type='full',start=.5,end=1.5,style=Style(x=.04,y=.04,width=.50,height=.56,background='#f5f1e8',color='#20312d',accent='#166b59',overlay_opacity=.8))
-    p['shots']=[s.model_dump()];p['overlays']=[o.model_dump(),card.model_dump()]
+    p['shots']=[s.model_dump()];p['overlays']=[o.model_dump()]
     p=client.put('/api/v1/projects/'+p['id'],json=p).json()['project']
+    response=client.post(f"/api/v1/projects/{p['id']}/scorecard-snapshots",json={
+        'revision':p['revision'],'timeline_position':.5,'duration':1,'style':card.style.model_dump()})
+    assert response.status_code==201,response.text
+    p=response.json()['project']
+    card=Overlay.model_validate(p['overlays'][-1])
     r=client.post(f"/api/v1/projects/{p['id']}/exports",json={'revision':p['revision'],'quality':'high','resolution':'source'})
     assert r.status_code==202,r.text
     jid=r.json()['id']

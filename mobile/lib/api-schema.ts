@@ -57,6 +57,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/projects/{pid}/scorecard-snapshots/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Preview Snapshot */
+    post: operations["preview_snapshot_api_v1_projects__pid__scorecard_snapshots_preview_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/projects/{pid}/scorecard-snapshots": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Insert Snapshot */
+    post: operations["insert_snapshot_api_v1_projects__pid__scorecard_snapshots_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/projects/{pid}/scorecard-snapshots/{snapshot_id}/replace": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Replace Snapshot */
+    post: operations["replace_snapshot_api_v1_projects__pid__scorecard_snapshots__snapshot_id__replace_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/projects/{pid}/video": {
     parameters: {
       query?: never;
@@ -415,6 +466,8 @@ export interface components {
       type: "shot" | "minimal" | "full" | "front" | "back";
       /** Shot Id */
       shot_id?: string | null;
+      /** Snapshot Id */
+      snapshot_id?: string | null;
       /**
        * Start
        * @default 0
@@ -462,6 +515,10 @@ export interface components {
       /** Overlays */
       overlays?: components["schemas"]["Overlay"][];
       video?: components["schemas"]["Video"] | null;
+      /** Snapshots */
+      snapshots?: {
+        [key: string]: components["schemas"]["ScorecardSnapshot"];
+      };
       /** Presets */
       presets?: {
         [key: string]: components["schemas"]["Style"];
@@ -515,6 +572,98 @@ export interface components {
       /** Reference Tee Id */
       reference_tee_id?: string | null;
     };
+    /** ScorecardData */
+    ScorecardData: {
+      /**
+       * Player
+       * @default
+       */
+      player: string;
+      /**
+       * Course
+       * @default
+       */
+      course: string;
+      /**
+       * Date
+       * @default
+       */
+      date: string;
+      /**
+       * Tee
+       * @default
+       */
+      tee: string;
+      /**
+       * Category
+       * @default
+       */
+      category: string;
+      /** Rating */
+      rating?: number | null;
+      /** Slope */
+      slope?: number | null;
+      /** Course Par */
+      course_par?: number | null;
+      /** Published Course Par */
+      published_course_par?: number | null;
+      /** Total Yardage */
+      total_yardage?: number | null;
+      /**
+       * Source Name
+       * @default
+       */
+      source_name: string;
+      /**
+       * Source Url
+       * @default
+       */
+      source_url: string;
+      /** Reference Course Id */
+      reference_course_id?: string | null;
+      /** Holes */
+      holes: components["schemas"]["SnapshotHole"][];
+    };
+    /** ScorecardSnapshot */
+    ScorecardSnapshot: {
+      /** Id */
+      id: string;
+      /** Project Id */
+      project_id: string;
+      /** Round Id */
+      round_id: string;
+      /** Timeline Position */
+      timeline_position: number;
+      /** Created At */
+      created_at: string;
+      /**
+       * Snapshot Version
+       * @default 1
+       */
+      snapshot_version: number;
+      /** Previous Snapshot Id */
+      previous_snapshot_id?: string | null;
+      /**
+       * Legacy
+       * @default false
+       */
+      legacy: boolean;
+      /** Current Hole */
+      current_hole?: number | null;
+      /** Completed Holes Count */
+      completed_holes_count: number;
+      scorecard_data: components["schemas"]["ScorecardData"];
+      /** Front Nine Score */
+      front_nine_score: number | null;
+      /** Back Nine Score */
+      back_nine_score: number | null;
+      /** Total Score */
+      total_score: number | null;
+      /** Total Par */
+      total_par: number | null;
+      /** Relative To Par */
+      relative_to_par: number | null;
+    };
     /** Selection */
     Selection: {
       /** Course Id */
@@ -566,6 +715,70 @@ export interface components {
        * @default 5
        */
       end: number;
+    };
+    /** SnapshotHole */
+    SnapshotHole: {
+      /** Number */
+      number: number;
+      /** Par */
+      par?: number | null;
+      /** Score */
+      score?: number | null;
+      /** Yardage */
+      yardage?: number | null;
+      /** Handicap */
+      handicap?: number | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "completed" | "current" | "not_played";
+      /** Relative To Par */
+      relative_to_par?: number | null;
+    };
+    /** SnapshotInsert */
+    SnapshotInsert: {
+      /** Revision */
+      revision: number;
+      /** Timeline Position */
+      timeline_position: number;
+      /** Current Hole */
+      current_hole?: number | null;
+      /**
+       * Type
+       * @default full
+       * @enum {string}
+       */
+      type: "full" | "front" | "back";
+      /**
+       * Duration
+       * @default 5
+       */
+      duration: number;
+      style?: components["schemas"]["Style"] | null;
+    };
+    /** SnapshotPreview */
+    SnapshotPreview: {
+      /** Revision */
+      revision: number;
+      /** Timeline Position */
+      timeline_position: number;
+      /** Current Hole */
+      current_hole?: number | null;
+    };
+    /** SnapshotReplace */
+    SnapshotReplace: {
+      /** Revision */
+      revision: number;
+      /** Overlay Id */
+      overlay_id: string;
+      /** Current Hole */
+      current_hole?: number | null;
+      /**
+       * Confirm Replace
+       * @default false
+       */
+      confirm_replace: boolean;
     };
     /** Style */
     Style: {
@@ -826,6 +1039,112 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["Project"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  preview_snapshot_api_v1_projects__pid__scorecard_snapshots_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        pid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SnapshotPreview"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  insert_snapshot_api_v1_projects__pid__scorecard_snapshots_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        pid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SnapshotInsert"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  replace_snapshot_api_v1_projects__pid__scorecard_snapshots__snapshot_id__replace_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        pid: string;
+        snapshot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SnapshotReplace"];
       };
     };
     responses: {

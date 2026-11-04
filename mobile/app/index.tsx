@@ -1,3 +1,4 @@
+import type { components } from "../lib/api-schema";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -46,14 +47,23 @@ function Button({ label, onPress }: { label: string; onPress: () => void }) {
     </Pressable>
   );
 }
-function Video({ project }: { project: Project }) {
+function Video({
+  project,
+  onTime,
+}: {
+  project: Project;
+  onTime: (time: number) => void;
+}) {
   const [time, setTime] = useState(0),
     [width, setWidth] = useState(300);
   const player = useVideoPlayer(
     project.video ? `${BASE}/projects/${project.id}/video` : null,
   );
   useEffect(() => {
-    const timer = setInterval(() => setTime(player.currentTime), 100);
+    const timer = setInterval(() => {
+      setTime(player.currentTime);
+      onTime(player.currentTime);
+    }, 100);
     return () => clearInterval(timer);
   }, [player]);
   if (!project.video) return null;
@@ -105,6 +115,7 @@ export default function App() {
       { id: string; project_id: string; status: string; progress: number }[]
     >([]);
   const current = useRef<Summary | null>(null);
+  const videoTime = useRef(0);
   const busy = useRef(false);
   const queue = useRef(Promise.resolve());
   function update(d: Summary) {
@@ -138,6 +149,7 @@ export default function App() {
     }
   }
   async function choose(id: string) {
+    videoTime.current = 0;
     try {
       update(await openProject(id));
       await cache("last", id);
@@ -193,6 +205,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, [tab]);
   async function create() {
+    videoTime.current = 0;
     try {
       const d = await request<Summary>("/projects", {
         method: "POST",
@@ -325,6 +338,88 @@ export default function App() {
         },
       });
     });
+  }
+  type Snapshot = components["schemas"]["ScorecardSnapshot"];
+  function snapshotText(s: Snapshot) {
+    return `Captured ${s.created_at} · v${s.snapshot_version}\nAt ${s.timeline_position.toFixed(1)} s · ${s.completed_holes_count}/18 completed\nCurrent hole: ${s.current_hole ?? "Round complete"}\nFront 9: ${s.front_nine_score ?? "—"} · Back 9: ${s.back_nine_score ?? "—"}\nTotal: ${s.total_score ?? "—"} · Relative: ${s.relative_to_par == null ? "—" : s.relative_to_par === 0 ? "E" : s.relative_to_par > 0 ? "+" + s.relative_to_par : s.relative_to_par}\nPlayed par: ${s.total_par ?? "—"} · Course par: ${s.scorecard_data.course_par ?? "—"}`;
+  }
+  async function snapshotAction(overlayId?: string) {
+    try {
+      await queue.current;
+      await sync();
+      const id = current.current?.project.id;
+      if (!id) return;
+      // Always confirm a fresh server revision. Never capture an offline draft.
+      const latest = await request<Summary>(`/projects/${id}`);
+      update(latest);
+      await cache("project:" + id, latest);
+      const p = latest.project;
+      if (!p.video) return Alert.alert("Import a video first");
+      const overlay = p.overlays.find((o) => o.id === overlayId);
+      if (overlayId && !overlay?.snapshot_id)
+        throw Error("Snapshot no longer exists. Reload.");
+      const position = overlay ? overlay.start : videoTime.current;
+      const revision = p.revision;
+      const preview = await request<Snapshot>(
+        `/projects/${id}/scorecard-snapshots/preview`,
+        {
+          method: "POST",
+          body: JSON.stringify({ revision, timeline_position: position }),
+        },
+      );
+      Alert.alert(
+        overlay ? "Replace snapshot data?" : "Add scorecard snapshot?",
+        snapshotText(preview) +
+          "\n\n" +
+          (overlay
+            ? "Only this overlay will use the new capture. Previous versions are preserved."
+            : "Later score edits will not change this snapshot."),
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: overlay
+              ? "Replace snapshot data"
+              : "Add snapshot to timeline",
+            onPress: () => {
+              (async () => {
+                const path = overlay
+                  ? `/projects/${id}/scorecard-snapshots/${overlay.snapshot_id}/replace`
+                  : `/projects/${id}/scorecard-snapshots`;
+                const body = overlay
+                  ? { revision, overlay_id: overlay.id, confirm_replace: true }
+                  : { revision, timeline_position: position };
+                const saved = await request<Summary>(path, {
+                  method: "POST",
+                  body: JSON.stringify(body),
+                });
+                update(saved);
+                await cache("project:" + id, saved);
+                setStatus("Snapshot saved");
+              })().catch(fail);
+            },
+          },
+        ],
+      );
+    } catch (e) {
+      fail(e);
+    }
+  }
+  function inspectSnapshot(s: Snapshot) {
+    Alert.alert(
+      "Captured scorecard",
+      snapshotText(s) +
+        "\n\n" +
+        s.scorecard_data.player +
+        " · " +
+        s.scorecard_data.course +
+        "\n" +
+        s.scorecard_data.holes
+          .map(
+            (h) =>
+              `${h.number}: ${h.score ?? "—"} / PAR ${h.par ?? "—"} · ${h.status}`,
+          )
+          .join("\n"),
+    );
   }
   const p = data?.project,
     hs = p?.round?.holes || [];
@@ -530,7 +625,12 @@ export default function App() {
           <>
             <Text style={css.title}>Video workspace</Text>
             {p.video ? (
-              <Video project={p} />
+              <Video
+                project={p}
+                onTime={(t) => {
+                  videoTime.current = t;
+                }}
+              />
             ) : (
               <Button label="Import device video" onPress={importVideo} />
             )}
@@ -538,6 +638,62 @@ export default function App() {
               Use the web editor for overlay design and detailed timing. This
               client previews the same saved graphics.
             </Text>
+            {p.video && (
+              <Button
+                label="＋ Add scorecard snapshot at playhead"
+                onPress={() => {
+                  snapshotAction();
+                }}
+              />
+            )}
+            {p.overlays
+              ?.filter((o) => !!o.snapshot_id)
+              .map((o) => {
+                const snapshot = p.snapshots[o.snapshot_id!];
+                if (!snapshot) return null;
+                const history: Snapshot[] = [];
+                let previous = snapshot.previous_snapshot_id;
+                while (previous && p.snapshots[previous]) {
+                  const old = p.snapshots[previous];
+                  history.push(old);
+                  previous = old.previous_snapshot_id;
+                }
+                return (
+                  <View style={css.card} key={o.id}>
+                    <Text style={css.cardTitle}>
+                      Snapshot · {o.type} · v{snapshot.snapshot_version}
+                    </Text>
+                    <Text style={css.muted}>
+                      {o.start.toFixed(1)}–{o.end.toFixed(1)} s ·{" "}
+                      {snapshot.completed_holes_count}/18 completed ·{" "}
+                      {snapshot.created_at}
+                    </Text>
+                    {snapshot.legacy && (
+                      <Text style={css.muted}>
+                        Migrated from saved scores; original insertion scores
+                        are unavailable.
+                      </Text>
+                    )}
+                    <Button
+                      label="Inspect captured scores"
+                      onPress={() => inspectSnapshot(snapshot)}
+                    />
+                    <Button
+                      label="Replace snapshot data…"
+                      onPress={() => {
+                        snapshotAction(o.id);
+                      }}
+                    />
+                    {history.map((old) => (
+                      <Button
+                        key={old.id}
+                        label={`Inspect previous version ${old.snapshot_version}`}
+                        onPress={() => inspectSnapshot(old)}
+                      />
+                    ))}
+                  </View>
+                );
+              })}
             <Button
               label="Render MP4 on backend"
               onPress={() => {
