@@ -17,7 +17,7 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 122 backend tests and 11 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 129 backend tests and 12 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -42,6 +42,8 @@ Open [http://127.0.0.1:8775](http://127.0.0.1:8775). Use `--port 8780` for anoth
 6. Select **Export MP4**, choose draft/high/master quality and source/1080p/4K bounds. Source aspect ratio and audio are preserved, video is encoded as H.264/yuv420p and the first audio track as AAC. Export never upscales. Progress comes from FFmpeg; download the finished MP4 from Exports.
 
 **Default layout:** new shot popups use X **0.75**, Y **0.03**, width **0.2**, height **0.15**; new full/front/back scorecards use X **0.24**, Y **0.2**, width **0.504**, height **0.56**. Both use font size **30**, corner radius **20**, sans font, visible background and course information. Coordinates are normalized to the video frame and remain the same in portrait/landscape. Web/native creation and Design RESET use these defaults. Saved styles are retained; the separate recommended-layout action still fits the design aspect to the source frame.
+
+**Putter remaining distance:** choosing **Putter** switches the remaining-distance input and broadcast card to **feet (FT)**. Other clubs use yards. Enter 8 to show **8 FT**; switching a saved 10-yard distance to Putter shows **30 FT** and switching back shows 10 yards. Values remain stored in yards for backward compatibility and API clients; no old project data is relabeled as feet. Unknown distance stays blank/— FT. Total hole yardage, individual shot distance and scorecards retain yards. Web/native entry and shared preview/MP4 rendering use this conversion; club and distance changes remain undoable.
 
 **Broadcast graphics:** shot popups now show the round player name, relative-to-par score through the holes before the shot’s current hole, hole/par, large remaining distance, a large shot number, and a lower strip with club and total hole yardage. The broadcast layout enlarges HOLE, PAR, LEFT, TO PAR and club labels/text; the overall font-size control scales them together. Total hole yardage comes from the selected hole; it is separate from the individual shot distance. The current and later holes are excluded even when their scores have already been entered. Hole 1 starts at E; any missing prior-hole score/par leaves cumulative score unknown. Missing hole par/yardage stays unknown. The minimal template continues to show individual shot distance.
 

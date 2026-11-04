@@ -1,3 +1,8 @@
+import {
+  remainingFactor,
+  displayRemaining,
+  remainingToYards,
+} from "../lib/shot-units";
 import type { components } from "../lib/api-schema";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -599,9 +604,13 @@ export default function App() {
                   />
                   {(["distance", "remaining"] as const).map((key) => (
                     <TextInput
-                      key={key}
-                      defaultValue={String(s[key] ?? "")}
-                      placeholder={`${key} (yds)`}
+                      key={`${key}-${s.club}`}
+                      defaultValue={String(
+                        (key === "remaining" ? displayRemaining(s) : s[key]) ??
+                          "",
+                      )}
+                      accessibilityLabel={`${key} (${key === "remaining" && s.club === "Putter" ? "ft" : "yds"})`}
+                      placeholder={`${key} (${key === "remaining" && s.club === "Putter" ? "ft" : "yds"})`}
                       placeholderTextColor={C.muted}
                       style={css.input}
                       keyboardType="decimal-pad"
@@ -610,7 +619,14 @@ export default function App() {
                         edit(
                           (p) =>
                             (p.shots!.find((x) => x.id === s.id)![key] =
-                              v === "" ? null : Number(v)),
+                              key === "remaining"
+                                ? remainingToYards(
+                                    v === "" ? null : Number(v),
+                                    remainingFactor(s.club),
+                                  )
+                                : v === ""
+                                  ? null
+                                  : Number(v)),
                         );
                       }}
                     />

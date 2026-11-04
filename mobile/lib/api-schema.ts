@@ -851,7 +851,10 @@ export interface components {
       club: string;
       /** Distance */
       distance?: number | null;
-      /** Remaining */
+      /**
+       * Remaining
+       * @description Remaining distance stored in yards. Putter inputs/displays use feet (yards multiplied by 3).
+       */
       remaining?: number | null;
       /**
        * Result

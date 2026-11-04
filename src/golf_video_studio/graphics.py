@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
 
-from .models import Overlay, Project, Style, numbered_shots, totals, score_before_hole
+from .models import Overlay, Project, Style, numbered_shots, totals, score_before_hole, remaining_display
 
 Box = tuple[float, float, float, float]
 
@@ -160,7 +160,8 @@ def _shot(c: Canvas, p: Project, overlay: Overlay):
     c.text(c.box(.035, .42, .21, .59), f'{shot.hole:02d}', 42 * k * text_scale, align='left')
     c.text(c.box(.035, .605, .21, .695), f'PAR {show(hole.par)}', 22 * k * text_scale, c.muted, 'left')
     c.text(c.box(.28, .32, .74, .405), 'LEFT', 20 * k * text_scale, c.muted, 'left')
-    left = f'{shot.remaining:g} YDS' if shot.remaining is not None else '— YDS'
+    remaining, unit = remaining_display(shot)
+    left = f'{remaining:g} {unit}' if remaining is not None else f'— {unit}'
     c.text(c.box(.28, .43, .74, .68), left, 43 * k * text_scale, align='left')
     c.text(c.box(.80, .32, .98, .405), 'SHOT', 20 * k * text_scale, c.accent)
     c.text(c.box(.80, .42, .98, .69), number, 62 * k * text_scale, c.accent)

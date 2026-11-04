@@ -101,3 +101,21 @@ test("new shot and scorecard defaults match requested inspector values", () => {
   }
   assert.deepEqual(DEFAULT_TEXT_STYLE, { font_size: 30, radius: 20 });
 });
+
+import {
+  remainingFactor,
+  displayRemaining,
+  remainingToYards,
+} from "../src/golf_video_studio/web/editor-data.js";
+test("putter entry uses feet with reversible yards storage and unknown values", () => {
+  assert.equal(remainingFactor("Putter"), 3);
+  assert.equal(remainingFactor("7 Iron"), 1);
+  assert.equal(displayRemaining({ club: "Putter", remaining: 10 }), 30);
+  for (const ft of [0, 8, 12.3, 4500]) {
+    const yards = remainingToYards(ft, 3);
+    assert.equal(displayRemaining({ club: "Putter", remaining: yards }), ft);
+    assert.equal(displayRemaining({ club: "Driver", remaining: yards }), yards);
+  }
+  assert.equal(displayRemaining({ club: "Putter", remaining: null }), null);
+  assert.equal(remainingToYards(null, 3), null);
+});

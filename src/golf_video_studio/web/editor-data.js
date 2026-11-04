@@ -58,3 +58,18 @@ export function scoreKind(hole) {
           ? "bogey"
           : "double";
 }
+
+// Persistence/API always use yards; only Putter's remaining-distance input is feet.
+export function remainingFactor(club) {
+  return club === "Putter" ? 3 : 1;
+}
+export function displayRemaining(shot) {
+  return shot.remaining == null
+    ? null
+    : shot.club === "Putter"
+      ? Math.round(shot.remaining * 3 * 1e6) / 1e6
+      : shot.remaining;
+}
+export function remainingToYards(value, factor) {
+  return value == null ? null : value / (factor === 3 ? 3 : 1);
+}

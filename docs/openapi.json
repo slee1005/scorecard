@@ -2242,7 +2242,8 @@
                 "type": "null"
               }
             ],
-            "title": "Remaining"
+            "title": "Remaining",
+            "description": "Remaining distance stored in yards. Putter inputs/displays use feet (yards multiplied by 3)."
           },
           "result": {
             "type": "string",

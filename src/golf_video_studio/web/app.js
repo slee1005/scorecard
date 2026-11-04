@@ -8,6 +8,9 @@ import {
 import { t, lang, setLang } from "./i18n.js";
 import {
   THEMES,
+  remainingFactor,
+  displayRemaining,
+  remainingToYards,
   recommendedGeometry,
   defaultGeometry,
   DEFAULT_TEXT_STYLE,
@@ -433,7 +436,7 @@ function renderInspector() {
           shot.club,
           clubs.map((c) => [c, c]),
           "shot",
-        )}<div class="field-grid">${field("shotNumberLabel", "number", shot.number, "number", `min="1" max="99" placeholder="${t("automatic")}"`, "shot")}${field("distance", "distance", shot.distance, "number", 'min="0" max="1000" step=".1"', "shot")}${field("remaining", "remaining", shot.remaining, "number", 'min="0" max="1500" step=".1"', "shot")}${field("start", "start", shot.start, "number", 'min="0" step=".01"', "shot")}${field("end", "end", shot.end, "number", 'min=".01" step=".01"', "shot")}</div>${field("result", "result", shot.result, "text", "", "shot")}<label class="field"><span>${t("notes")}</span><textarea data-scope="shot" data-key="notes">${esc(shot.notes)}</textarea></label><div class="field-grid">${button("up", `↑ ${t("moveUp")}`, "subtle")}${button("down", `↓ ${t("moveDown")}`, "subtle")}</div>${button("delete-shot", t("deleteShot"), "wide danger")}`
+        )}<div class="field-grid">${field("shotNumberLabel", "number", shot.number, "number", `min="1" max="99" placeholder="${t("automatic")}"`, "shot")}${field("distance", "distance", shot.distance, "number", 'min="0" max="1000" step=".1"', "shot")}${field(shot.club === "Putter" ? "remainingFeet" : "remaining", "remaining", displayRemaining(shot), "number", `min="0" max="${1500 * remainingFactor(shot.club)}" step=".1" data-remaining-factor="${remainingFactor(shot.club)}"`, "shot")}${field("start", "start", shot.start, "number", 'min="0" step=".01"', "shot")}${field("end", "end", shot.end, "number", 'min=".01" step=".01"', "shot")}</div>${field("result", "result", shot.result, "text", "", "shot")}<label class="field"><span>${t("notes")}</span><textarea data-scope="shot" data-key="notes">${esc(shot.notes)}</textarea></label><div class="field-grid">${button("up", `↑ ${t("moveUp")}`, "subtle")}${button("down", `↓ ${t("moveDown")}`, "subtle")}</div>${button("delete-shot", t("deleteShot"), "wide danger")}`
       : `<p class="empty-note">${t("selectShot")}</p>${button("add-shot", `＋ ${t("addShot")}`, "wide primary")}`;
   }
   if (S.tab === "design") {
@@ -1405,6 +1408,8 @@ document.addEventListener("change", async (e) => {
               : Number(el.value)
             : el.value;
       if (key === "hole") value = Number(value);
+      if (scope === "shot" && key === "remaining")
+        value = remainingToYards(value, Number(el.dataset.remainingFactor));
       if (key === "transparency") {
         key = "overlay_opacity";
         value = 1 - value / 100;

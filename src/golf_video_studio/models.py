@@ -108,7 +108,7 @@ class Shot(Model):
     number: int | None = Field(default=None, ge=1, le=99)
     club: str = Field(default="Driver", max_length=40)
     distance: float | None = Field(default=None, ge=0, le=1000)
-    remaining: float | None = Field(default=None, ge=0, le=1500)
+    remaining: float | None = Field(default=None, ge=0, le=1500, description="Remaining distance stored in yards. Putter inputs/displays use feet (yards multiplied by 3).")
     result: str = Field(default="", max_length=100)
     notes: str = Field(default="", max_length=2000)
     start: float = Field(default=0, ge=0, le=86400)
@@ -121,6 +121,13 @@ class Shot(Model):
         if self.club not in CLUBS:
             raise ValueError("Unknown club")
         return self
+
+
+def remaining_display(shot: Shot) -> tuple[float | None, str]:
+    """Keep saved distances in yards while presenting putts in feet, including old projects."""
+    if shot.club == 'Putter':
+        return (round(shot.remaining * 3, 6) if shot.remaining is not None else None, 'FT')
+    return shot.remaining, 'YDS'
 
 
 class Style(Model):
