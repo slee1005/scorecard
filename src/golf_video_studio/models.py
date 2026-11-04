@@ -146,6 +146,13 @@ class Style(Model):
         return self
 
 
+def default_style(kind: str = 'shot') -> Style:
+    """New/reset graphics use the owner's normalized layout; saved Style stays compatible."""
+    geometry = dict(x=.75,y=.03,width=.2,height=.15) if kind in ('shot','minimal') else dict(x=.24,y=.2,width=.504,height=.56)
+    return Style(**geometry,font_size=30,radius=20,
+        background='#102c42',color='#f6fbff',accent='#34c6e5')
+
+
 class FrozenModel(Model):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False, frozen=True)
 

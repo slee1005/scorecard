@@ -25,6 +25,14 @@ export function currentTheme(style) {
   );
 }
 
+// Explicit normalized defaults requested by the owner; fit-layout remains optional.
+export const DEFAULT_TEXT_STYLE = { font_size: 30, radius: 20 };
+export function defaultGeometry(type) {
+  return type === "shot" || type === "minimal"
+    ? { x: 0.75, y: 0.03, width: 0.2, height: 0.15 }
+    : { x: 0.24, y: 0.2, width: 0.504, height: 0.56 };
+}
+
 export function recommendedGeometry(type, video) {
   const aspect =
     video?.width > 0 && video?.height > 0 ? video.width / video.height : 16 / 9;

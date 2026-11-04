@@ -78,3 +78,26 @@ test("score editor marks unknown, single and double relative scores consistently
   ])
     assert.equal(scoreKind({ par: 4, score }), kind);
 });
+
+import {
+  defaultGeometry,
+  DEFAULT_TEXT_STYLE,
+} from "../src/golf_video_studio/web/editor-data.js";
+test("new shot and scorecard defaults match requested inspector values", () => {
+  assert.deepEqual(defaultGeometry("shot"), {
+    x: 0.75,
+    y: 0.03,
+    width: 0.2,
+    height: 0.15,
+  });
+  assert.deepEqual(defaultGeometry("minimal"), defaultGeometry("shot"));
+  for (const kind of ["full", "front", "back"]) {
+    assert.deepEqual(defaultGeometry(kind), {
+      x: 0.24,
+      y: 0.2,
+      width: 0.504,
+      height: 0.56,
+    });
+  }
+  assert.deepEqual(DEFAULT_TEXT_STYLE, { font_size: 30, radius: 20 });
+});

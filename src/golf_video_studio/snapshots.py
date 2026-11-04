@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException
 
-from .models import Project, ScorecardData, ScorecardSnapshot, SnapshotHole, Style, snapshot_totals, uid
+from .models import Project, ScorecardData, ScorecardSnapshot, SnapshotHole, Style, snapshot_totals, uid, default_style
 
 
 def capture(p: Project, position: float, current_hole: int | None = None, *,
@@ -35,9 +35,4 @@ def capture(p: Project, position: float, current_hole: int | None = None, *,
 
 
 def card_style(p: Project, kind: str) -> Style:
-    aspect = p.video.width / p.video.height if p.video else 16/9
-    ratio = 688/430 if kind == 'full' else 688/292
-    height_limit = .56 if kind == 'full' else .35
-    width = min(.92 if aspect < 1 else .72, height_limit*ratio/aspect)
-    return Style(x=.04, y=.04, width=width, height=width*aspect/ratio,
-        background='#102c42',color='#f6fbff',accent='#34c6e5')
+    return default_style(kind)

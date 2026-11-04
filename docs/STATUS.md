@@ -24,7 +24,8 @@ This status distinguishes working desktop implementation from native preparation
 | Manual shot numbers and popup themes/transparency | Broadcast name/prior-hole-score/hole/yardage/large-shot popup, club/remaining strip, six themes and shared preview/export |
 | Immutable scorecard timeline snapshots | Shared model/rendering; 5/9/18-hole captures, confirmed replacement/history and real three-card MP4 pixel tests; web confirmation/immutable-data/replacement/history QA verified; native device testing pending |
 | Modern 18-hole scorecard | Two nine-hole sections; actual digit ink centered within single/double circle/square indicators |
-| Aspect-aware layout presets | New cards fit the source aspect; explicit recommended-layout action preserves old projects until selected |
+| Default overlay layouts | Requested shot/card coordinates, font 30 and radius 20; web/native creation + undoable Design RESET; saved styles retained |
+| Aspect-aware layout presets | Explicit layout fitting respects the source aspect; explicit recommended-layout action preserves old projects until selected |
 | Source snapshots and round override detection | Implemented |
 | Authorized JSON/CSV import and reference image/PDF upload | Implemented; no OCR |
 | Live USGA search/API | Not implemented: permission/provider integration required |
@@ -41,17 +42,18 @@ This status distinguishes working desktop implementation from native preparation
 
 ## Verification evidence
 
-- Backend suite: 106 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
+- Backend suite: 112 tests, including a real FFmpeg export of synthetic video with audio, RGBA panel equality, timeline boundaries, portrait proportions, course reference immutability and optimistic-write conflicts.
 - Existing adjacent ShotTracer suite: 92 tests passed; source was not edited.
 - Browser QA uses a temporary data home: Korean workspace render, real keyboard round entry/autosave, synthetic video upload, shot creation, preview graphics and real export submission/download readiness.
 - GolfCourseAPI integration tests use synthetic responses; no real API key was supplied. Credential redaction, auth/rate-limit/network errors, caching, refresh and snapshot integrity are covered.
-- JavaScript suite: 4 tests for manual numbering, theme preservation, portrait/landscape recommended layouts and score classes.
+- JavaScript suite: 5 tests for manual numbering, theme preservation, portrait/landscape recommended layouts, score classes and requested default geometry/typography.
 - Raster tests verify digit/marker centers across sans/serif/mono, including two-digit scores and dashes. The real export test overlays the broadcast shot and modern full card together with audio.
 - Snapshot web QA: a temporary synthetic-video project captured 5 holes, entered Hole 6 without altering the old 20-stroke card, confirmed replacement to a 24-stroke v2, and inspected retained v1 history.
 - Native snapshot actions share the revision-checked server APIs; TypeScript, official dependency validation and iOS/Android JS exports passed. No simulator or physical-device acceptance is claimed.
 - Project history/trash web QA: edited and undid/redid round data, confirmed and undid round reset, undid a shot club change and a card theme change, reset design, deleted/restored the synthetic-video project and verified retained graphics/history controls.
 - Empty-trash browser QA: isolated temporary projects verified the enabled button, exact project name/count, irreversible-delete warning and Cancel path; permanent removal/failure/restart checks ran only against pytest scratch data.
 - Selected-trash/prior-hole-score QA: checkbox and row actions confirmed only one named temporary target; Cancel preserved both trash items. A Hole 3 popup displayed -1 from Holes 1–2 despite entered current/future scores. The synthetic MP4 test uses the same prior-hole scoring path.
+- Default-layout browser QA: new shot fields matched (.75,.03,.2,.15), new card fields matched (.24,.2,.504,.56), both font 30/radius 20, and both panels appeared without collision on the same synthetic frame.
 - Source and mobile lockfiles are retained for reproducibility. See README commands for rerunning validation.
 
 ## Next development milestones

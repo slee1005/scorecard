@@ -2,6 +2,8 @@ import { t, lang, setLang } from "./i18n.js";
 import {
   THEMES,
   recommendedGeometry,
+  defaultGeometry,
+  DEFAULT_TEXT_STYLE,
   scoreKind,
   currentTheme,
   shotNumber as displayShotNumber,
@@ -67,12 +69,11 @@ const clubs = [
   "Putter",
 ];
 const style = () => ({
-  ...recommendedGeometry("shot", S.p?.video),
+  ...defaultGeometry("shot"),
   ...THEMES.broadcast,
   opacity: 0.9,
   overlay_opacity: 1,
-  radius: 14,
-  font_size: 24,
+  ...DEFAULT_TEXT_STYLE,
   font: "sans",
   panel: true,
   show_course: true,
@@ -830,7 +831,7 @@ async function addCard(replace = false) {
     : null;
   if (replace && !selected?.snapshot_id) return;
   const s = style();
-  Object.assign(s, recommendedGeometry("full", S.p.video), { font_size: 24 });
+  Object.assign(s, defaultGeometry("full"));
   S.snapshotDraft = {
     replace,
     revision: S.p.revision,

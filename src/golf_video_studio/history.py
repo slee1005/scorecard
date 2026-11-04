@@ -8,7 +8,7 @@ from typing import Literal
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from .models import Project, Round, Style
+from .models import Project, Round, Style, default_style
 
 Scope = Literal['round', 'shot', 'design']
 LIMIT = 100
@@ -129,11 +129,7 @@ def reset(p: Project, scope: Scope) -> Project:
 
 
 def shot_style(p: Project) -> Style:
-    aspect = p.video.width / p.video.height if p.video else 16/9
-    width = min(.92 if aspect < 1 else .46, .28*(620/254)/aspect)
-    height = width*aspect/(620/254)
-    return Style(x=.04,y=.96-height,width=width,height=height,
-        background='#102c42',color='#f6fbff',accent='#34c6e5')
+    return default_style('shot')
 
 
 def perform(pid: str, revision: int, scope: Scope, action: Literal['undo','redo','reset']) -> Project:

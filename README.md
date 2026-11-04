@@ -17,7 +17,7 @@ A local golf-video editor for timed shot graphics, editable 18-hole scorecards a
 | iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
 | USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
 
-**Validation:** 106 backend tests and 4 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
+**Validation:** 112 backend tests and 5 JavaScript tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
@@ -40,6 +40,8 @@ Open [http://127.0.0.1:8775](http://127.0.0.1:8775). Use `--port 8780` for anoth
 4. Add a full/front/back scorecard. Select a timeline graphic and use **Design** to choose its template, adjust timing, normalized position/size, font, text/panel/accent colors, panel opacity, radius, visibility and course label. Drag panels and their resize handle directly in the preview. Choose Broadcast blue, Forest, Ocean, Paper, Crimson or Midnight color themes, or set custom colors. **Overlay transparency** ranges from 0% (visible) to 100% (fully transparent) and affects the entire graphic, while **Panel opacity** affects only the background. Theme changes preserve transparency, timing and placement. Save styles as project presets. Shot and scorecard panels can coexist in separate areas; timing/panel collisions are rejected.
 5. Use play/pause, seek, frame steps and timeline zoom. Space toggles playback; arrow keys step frames when no form control has focus. The actual video `currentTime` controls overlay visibility with half-open `[start, end)` intervals.
 6. Select **Export MP4**, choose draft/high/master quality and source/1080p/4K bounds. Source aspect ratio and audio are preserved, video is encoded as H.264/yuv420p and the first audio track as AAC. Export never upscales. Progress comes from FFmpeg; download the finished MP4 from Exports.
+
+**Default layout:** new shot popups use X **0.75**, Y **0.03**, width **0.2**, height **0.15**; new full/front/back scorecards use X **0.24**, Y **0.2**, width **0.504**, height **0.56**. Both use font size **30**, corner radius **20**, sans font, visible background and course information. Coordinates are normalized to the video frame and remain the same in portrait/landscape. Web/native creation and Design RESET use these defaults. Saved styles are retained; the separate recommended-layout action still fits the design aspect to the source frame.
 
 **Broadcast graphics:** shot popups now show the round player name, relative-to-par score through the holes before the shot’s current hole, hole/par, total hole yardage, a large shot number, and a lower strip with club and remaining distance. Total hole yardage comes from the selected hole; it is separate from the individual shot distance. The current and later holes are excluded even when their scores have already been entered. Hole 1 starts at E; any missing prior-hole score/par leaves cumulative score unknown. Missing hole par/yardage stays unknown. The minimal template continues to show individual shot distance.
 
