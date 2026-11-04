@@ -1,3 +1,10 @@
+import {
+  timePercent,
+  timelineTicks,
+  pointerTime,
+  draggedStart,
+  zoomScroll,
+} from "./timeline-data.js";
 import { t, lang, setLang } from "./i18n.js";
 import {
   THEMES,
@@ -197,7 +204,7 @@ function shell() {
     )}</nav><div class="project-head"><span class="eyebrow">${t("projects")}</span>${button("new", "+", "icon", `aria-label="${t("newProject")}"`)}</div><div id="projects"></div><div class="sidebar-actions">${button("new", `<span class="sidebar-action-icon" aria-hidden="true">＋</span><span class="sidebar-action-label">${t("newProject")}</span>`, "sidebar-action new-project", `aria-label="${t("newProject")}" title="${t("newProject")}"`)}${button("project-trash", `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/></svg><span class="sidebar-action-label">${t("projectTrash")}</span>`, "sidebar-action", `aria-label="${t("projectTrash")}" title="${t("projectTrash")}"`)}${button("help", `<span class="sidebar-action-icon sidebar-help-icon" aria-hidden="true">?</span><span class="sidebar-action-label">${t("help")}</span>`, "sidebar-action", `aria-label="${t("help")}" title="${t("help")}"`)}</div><div class="sidebar-footer"><span class="online-dot"></span>${t("local")}<p>${t("private")}</p></div></aside>
 <div class="app-main"><header class="topbar"><div class="breadcrumb">${t("workspace")}<span>/</span><input id="project-name" aria-label="${t("projectName")}"></div><div class="top-actions"><span id="save-status"></span>${button("delete-project", t("deleteProject"), "subtle danger")}<select id="language" aria-label="${t("language")}"><option value="ko" ${lang === "ko" ? "selected" : ""}>한국어</option><option value="en" ${lang === "en" ? "selected" : ""}>EN</option></select>${button("export", `↗ &nbsp;${t("export")}`, "primary")}</div></header>
 <div class="workspace-body"><main><section id="studio-view"><div class="section-head"><div><span class="eyebrow">${t("preview")}</span><h1 id="video-title">${t("noVideo")}</h1></div><span id="metadata"></span></div><div class="preview-well"><div id="empty-preview"><div class="empty-copy"><span class="pill">GOLF VIDEO STUDIO / 01</span><h2>${t("emptyTitle")}</h2><p>${t("emptyDesc")}</p>${button("upload", `＋ &nbsp; ${t("choose")}`, "primary large")}<small>${t("formats")}</small></div><span class="art-label">${t("sample")}</span></div><div id="video-box" hidden><video id="video" playsinline preload="metadata"></video><div id="overlay-layer"></div></div></div><div class="playback"><span id="video-meta"></span><div>${button("prev", "│◀", "icon", `aria-label="${t("prevFrame")}"`)}${button("play", "▶", "play-button", `aria-label="${t("play")}"`)}${button("next", "▶│", "icon", `aria-label="${t("nextFrame")}"`)}</div><span id="time">00:00 / 00:00</span></div><div id="onboarding" class="onboarding">${["step1", "step2", "step3"].map((k, i) => `<div><b>0${i + 1}</b><span>${t(k)}</span><i>${i === 0 ? "↗" : i === 1 ? "▦" : "✓"}</i></div>`).join("")}</div>
-<div class="timeline"><div class="timeline-head"><span class="eyebrow">${t("timeline")}</span><div>${button("add-shot", `＋ ${t("addShot")}`, "subtle")}${button("add-card", `＋ ${t("addCard")}`, "subtle")}<label class="zoom">− <input id="zoom" type="range" min="1" max="8" value="${S.zoom}" aria-label="${t("zoom")}"> ＋</label></div></div><input id="seek" type="range" min="0" max="1" step=".001" value="0" aria-label="${t("seek")}"><div class="timeline-scroll"><div id="tracks"></div></div><p class="timeline-help">${t("markers")}</p></div><div class="shotlist-head"><span class="eyebrow">${t("shotList")}</span><span id="shot-count"></span></div><div id="shot-list"></div></section><section id="courses-view" hidden></section><section id="rounds-view" hidden></section><section id="exports-view" hidden></section></main><aside class="inspector"><div class="inspector-head"><span class="eyebrow">${t("inspector")}</span><span>☷</span></div><div class="tabs">${["round", "shot", "design"].map((k) => button("tab", t(k), "", `data-tab="${k}"`)).join("")}</div><div id="inspector-content"></div></aside></div></div><div id="notice" hidden></div><input hidden type="file" id="video-file" accept=".mp4,.mov,.webm"><input hidden type="file" id="csv-file" accept=".csv"><input hidden type="file" id="reference-file" accept=".png,.jpg,.jpeg,.pdf"><input hidden type="file" id="course-file" accept=".json"><dialog id="dialog"></dialog>`;
+<div class="timeline"><div class="timeline-head"><span class="eyebrow">${t("timeline")}</span><div>${button("add-shot", `＋ ${t("addShot")}`, "subtle")}${button("add-card", `＋ ${t("addCard")}`, "subtle")}<label class="zoom">− <input id="zoom" type="range" min="1" max="8" value="${S.zoom}" aria-label="${t("zoom")}"> ＋</label></div></div><div class="timeline-scroll"><div id="tracks"></div></div><p class="timeline-help">${t("markers")}</p></div><div class="shotlist-head"><span class="eyebrow">${t("shotList")}</span><span id="shot-count"></span></div><div id="shot-list"></div></section><section id="courses-view" hidden></section><section id="rounds-view" hidden></section><section id="exports-view" hidden></section></main><aside class="inspector"><div class="inspector-head"><span class="eyebrow">${t("inspector")}</span><span>☷</span></div><div class="tabs">${["round", "shot", "design"].map((k) => button("tab", t(k), "", `data-tab="${k}"`)).join("")}</div><div id="inspector-content"></div></aside></div></div><div id="notice" hidden></div><input hidden type="file" id="video-file" accept=".mp4,.mov,.webm"><input hidden type="file" id="csv-file" accept=".csv"><input hidden type="file" id="reference-file" accept=".png,.jpg,.jpeg,.pdf"><input hidden type="file" id="course-file" accept=".json"><dialog id="dialog"></dialog>`;
   $("#video").addEventListener("timeupdate", tick);
   $("#video").addEventListener("seeked", tick);
   $("#video").addEventListener("play", () => {
@@ -258,7 +265,6 @@ function render() {
     S.source = null;
     $("#video").removeAttribute("src");
   }
-  $("#seek").max = p.video?.duration || 1;
   renderInspector();
   renderTimeline();
   renderShots();
@@ -488,25 +494,34 @@ function renderTimeline() {
   const p = S.p,
     d = p.video?.duration || 60;
   const width = 100 * S.zoom;
-  const ticks = Array.from(
-    { length: 9 },
-    (_, i) => `<span style="left:${i * 12.5}%">${fmt((d * i) / 8)}</span>`,
-  ).join("");
+  const tickValues = timelineTicks(d, S.zoom);
+  const ticks = tickValues
+    .map((tick) => {
+      const label =
+        fmt(tick.time) +
+        (tick.fractional ? "." + Math.floor((tick.time % 1) * 10 + 1e-6) : "");
+      return `<span style="left:${tick.percent}%">${label}</span>`;
+    })
+    .join("");
   const marks = p.shots
     .map(
       (s) =>
-        `<button class="marker shot-marker ${S.shot === s.id ? "selected" : ""}" data-action="select-shot" data-id="${s.id}" data-start="${s.start}" style="left:${(s.start / d) * 100}%;width:${Math.max(1, ((s.end - s.start) / d) * 100)}%">H${s.hole} · ${esc(s.club)}</button>`,
+        `<button class="marker shot-marker ${S.shot === s.id ? "selected" : ""}" data-action="select-shot" data-id="${s.id}" data-start="${s.start}" style="left:${timePercent(s.start, d)}%;width:${((s.end - s.start) / d) * 100}%"><span class="marker-label">H${s.hole} · ${esc(s.club)}</span></button>`,
     )
     .join("");
   const graphics = p.overlays
     .map(
       (o) =>
-        `<button class="marker graphic-marker ${o.snapshot_id ? "snapshot-marker" : ""} ${S.overlay === o.id ? "selected" : ""}" aria-label="${esc(graphicLabel(o))}" data-action="select-overlay" data-id="${o.id}" style="left:${(o.start / d) * 100}%;width:${Math.max(1, ((o.end - o.start) / d) * 100)}%">${esc(graphicLabel(o))}</button>`,
+        `<button class="marker graphic-marker ${o.snapshot_id ? "snapshot-marker" : ""} ${S.overlay === o.id ? "selected" : ""}" aria-label="${esc(graphicLabel(o))}" data-action="select-overlay" data-id="${o.id}" style="left:${timePercent(o.start, d)}%;width:${((o.end - o.start) / d) * 100}%"><span class="marker-label">${esc(graphicLabel(o))}</span></button>`,
     )
     .join("");
   $("#tracks").style.width = width + "%";
+  $("#tracks").style.setProperty(
+    "--grid-step",
+    (tickValues[1]?.percent || 100) + "%",
+  );
   $("#tracks").innerHTML =
-    `<div class="ruler">${ticks}</div><div class="track">${marks || `<span class="track-empty">${t("emptyTimeline")}</span>`}</div><div class="track graphics-track">${graphics}</div><div class="playhead" style="left:${(S.time / d) * 100}%"></div>`;
+    `<input id="seek" type="range" min="0" max="${d}" step=".001" value="${S.time}" aria-label="${t("seek")}"><div class="ruler">${ticks}</div><div class="track">${marks || `<span class="track-empty">${t("emptyTimeline")}</span>`}</div><div class="track graphics-track">${graphics}</div><div class="playhead" style="left:${timePercent(S.time, d)}%"></div>`;
 }
 function renderShots() {
   $("#shot-count").textContent = S.p.shots.length;
@@ -554,10 +569,10 @@ function tick() {
   const v = $("#video");
   S.time = v.currentTime || 0;
   $("#time").textContent = `${fmt(S.time)} / ${fmt(S.p.video?.duration || 0)}`;
-  $("#seek").value = S.time;
+  if ($("#seek")) $("#seek").value = S.time;
   const line = $(".playhead");
   if (line)
-    line.style.left = (S.time / (S.p.video?.duration || 60)) * 100 + "%";
+    line.style.left = timePercent(S.time, S.p.video?.duration || 60) + "%";
   updateVisible();
 }
 function updatePlay() {
@@ -1418,18 +1433,47 @@ document.addEventListener("input", (e) => {
     $("#transparency-value").textContent = e.target.value + "%";
   if (e.target.id === "seek") $("#video").currentTime = Number(e.target.value);
   if (e.target.id === "zoom") {
+    const scroll = $(".timeline-scroll"),
+      oldWidth = $("#tracks").getBoundingClientRect().width,
+      oldScroll = scroll.scrollLeft;
     S.zoom = Number(e.target.value);
     renderTimeline();
+    scroll.scrollLeft = zoomScroll(
+      oldWidth,
+      $("#tracks").getBoundingClientRect().width,
+      oldScroll,
+      scroll.clientWidth,
+      S.time,
+      S.p.video?.duration || 60,
+    );
   }
   if (e.target.id === "course-search") renderCourseResults(e.target.value);
 });
+function seekTimeline(clientX) {
+  if (!S.p?.video) return;
+  const rect = $("#tracks").getBoundingClientRect();
+  $("#video").currentTime = pointerTime(
+    clientX,
+    rect.left,
+    rect.width,
+    S.p.video.duration,
+  );
+  tick();
+}
 // Pointer gestures use normalized video coordinates, independent of letterboxing.
 let drag = null,
   suppressClick = false;
 document.addEventListener("pointerdown", (e) => {
   const graphic = e.target.closest("[data-overlay]"),
     marker = e.target.closest(".marker");
-  if (graphic) {
+  if (e.target.id === "seek" || e.target.closest(".ruler")) {
+    if (!S.p?.video) return;
+    e.preventDefault();
+    $("#seek").focus({ preventScroll: true });
+    drag = { kind: "seek", el: e.target };
+    e.target.setPointerCapture(e.pointerId);
+    seekTimeline(e.clientX);
+  } else if (graphic) {
     const o = S.p.overlays.find((o) => o.id === graphic.dataset.overlay);
     drag = {
       kind: "graphic",
@@ -1458,12 +1502,17 @@ document.addEventListener("pointerdown", (e) => {
       start: item.start,
       end: item.end,
       rect: $("#tracks").getBoundingClientRect(),
+      scrollLeft: $(".timeline-scroll").scrollLeft,
     };
     marker.setPointerCapture(e.pointerId);
   }
 });
 document.addEventListener("pointermove", (e) => {
   if (!drag) return;
+  if (drag.kind === "seek") {
+    seekTimeline(e.clientX);
+    return;
+  }
   const d = drag,
     dx = (e.clientX - d.x) / d.rect.width,
     dy = (e.clientY - d.y) / d.rect.height;
@@ -1487,9 +1536,13 @@ document.addEventListener("pointermove", (e) => {
     });
   } else {
     const duration = S.p.video.duration;
-    d.value = Math.max(
-      0,
-      Math.min(duration - (d.end - d.start), d.start + dx * duration),
+    d.value = draggedStart(
+      d.start,
+      d.end,
+      e.clientX - d.x,
+      $(".timeline-scroll").scrollLeft - d.scrollLeft,
+      d.rect.width,
+      duration,
     );
     d.el.style.left = (d.value / duration) * 100 + "%";
   }
@@ -1498,6 +1551,7 @@ document.addEventListener("pointerup", async () => {
   const d = drag;
   drag = null;
   if (!d) return;
+  if (d.kind === "seek") return;
   if (!d.moved) {
     if (d.kind === "graphic") {
       S.overlay = d.id;
@@ -1528,6 +1582,14 @@ document.addEventListener("pointerup", async () => {
       }
     });
   } catch {
+    renderGraphics();
+    renderTimeline();
+  }
+});
+document.addEventListener("pointercancel", () => {
+  if (!drag) return;
+  drag = null;
+  if (S.p) {
     renderGraphics();
     renderTimeline();
   }

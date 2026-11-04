@@ -701,9 +701,13 @@ main {
 }
 #seek {
   display: block;
-  width: calc(100% - 30px);
-  margin: 14px 15px 0;
-  height: 5px;
+  appearance: none;
+  width: 100%;
+  margin: 0;
+  height: 16px;
+  border-radius: 0;
+  background: linear-gradient(#30444e, #30444e) center / 100% 4px no-repeat;
+  touch-action: none;
 }
 .timeline-scroll {
   overflow: auto;
@@ -712,6 +716,7 @@ main {
 #tracks {
   position: relative;
   min-width: 100%;
+  overflow: hidden;
 }
 .ruler {
   height: 27px;
@@ -738,9 +743,9 @@ main {
   background: repeating-linear-gradient(
     90deg,
     transparent 0,
-    transparent calc(12.5% - 1px),
-    #1d2a33 calc(12.5% - 1px),
-    #1d2a33 12.5%
+    transparent calc(var(--grid-step, 12.5%) - 1px),
+    #1d2a33 calc(var(--grid-step, 12.5%) - 1px),
+    #1d2a33 var(--grid-step, 12.5%)
   );
 }
 .graphics-track {
@@ -750,33 +755,33 @@ main {
   position: absolute;
   top: 8px;
   height: 27px;
-  min-width: 7px;
+  min-width: 0;
+  border: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
-  padding: 4px 8px;
+  padding: 0;
   font-size: 9px;
   border-radius: 3px;
   touch-action: none;
 }
 .shot-marker {
-  background: #1c4942;
+  background: linear-gradient(90deg, #2fc7a6 3px, #1c4942 3px);
   color: #a2dfd2;
-  border-left: 3px solid #2fc7a6;
 }
 .graphic-marker {
-  background: #27394f;
+  background: linear-gradient(90deg, #578ac6 3px, #27394f 3px);
   color: #a9c8e5;
-  border-left: 3px solid #578ac6;
 }
 .marker.selected {
   box-shadow: inset 0 0 0 1px #b2d7d0;
 }
 .playhead {
   position: absolute;
-  top: 22px;
+  top: 0;
   bottom: 0;
+  transform: translateX(-1px);
   width: 1px;
   background: #dfedec;
   pointer-events: none;
@@ -1650,8 +1655,7 @@ dialog p {
 }
 
 .snapshot-marker {
-  background: #23473f;
-  border-left-color: #5fc9a7;
+  background: linear-gradient(90deg, #5fc9a7 3px, #23473f 3px);
 }
 .snapshot-inspector {
   padding-bottom: 22px;
@@ -1804,4 +1808,23 @@ dialog p {
 .trash-item > input[type="checkbox"] {
   flex: 0 0 auto;
   accent-color: #2cc6b5;
+}
+
+#seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 0;
+  height: 0;
+}
+#seek::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  border: 0;
+}
+.marker-label {
+  position: absolute;
+  inset: 0;
+  padding: 4px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
