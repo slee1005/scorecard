@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Golf Video Studio", "slug": "golf-video-studio", "version": "0.1.0", "scheme": "golfvideostudio",
+    "userInterfaceStyle": "dark", "orientation": "default",
+    "ios": {"bundleIdentifier": "com.golfvideostudio.development", "supportsTablet": true, "infoPlist": {"NSAppTransportSecurity": {"NSAllowsLocalNetworking": true}}},
+    "android": {"package": "com.golfvideostudio.development", "permissions": []},
+    "plugins": ["expo-router", "expo-sqlite", "expo-video", "expo-document-picker", "expo-dev-client"]
+  }
+}

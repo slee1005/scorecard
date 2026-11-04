@@ -1,0 +1,15 @@
+[project]
+name = "golf-video-studio"
+version = "0.1.0"
+description = "Local golf scorecard video editor"
+requires-python = ">=3.13"
+dependencies = ["fastapi>=0.150.0", "uvicorn>=0.54.0", "python-multipart>=0.0.32", "pillow>=13.0.0"]
+[project.scripts]
+golf-video-studio = "golf_video_studio.api:main"
+[build-system]
+requires = ["uv_build>=0.9,<1"]
+build-backend = "uv_build"
+[dependency-groups]
+dev = ["pytest>=9.1.1", "httpx>=0.28"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
