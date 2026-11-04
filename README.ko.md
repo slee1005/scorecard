@@ -2,14 +2,29 @@
 
 # Golf Video Studio
 
-샷 그래픽과 편집 가능한 18홀 스코어카드를 영상 시간에 맞춰 표시하고 실제 MP4로 출력하는 로컬 골프 영상 편집기입니다. 제공된 골프장 참고 이미지의 어두운 테마를 반영했습니다. 별도 프로젝트로 구성하여 기존 ShotTracer 코드와 프로젝트는 변경하지 않습니다.
+샷 그래픽과 편집 가능한 18홀 스코어카드를 영상 시간에 맞춰 표시하고 실제 MP4에 합성하는 로컬 골프 영상 편집기입니다. 영상 처리와 프로젝트 저장은 사용자 기기에서 실행합니다. 웹 편집기와 Expo 모바일 개발 클라이언트가 하나의 FastAPI 백엔드와 점수 모델을 공유합니다.
+
+![Golf Video Studio 편집 화면](docs/images/studio.jpg)
+
+## 현재 상태
+
+| 구성 요소 | 상태 |
+| --- | --- |
+| 데스크톱 웹 편집기 | 영상 가져오기·재생, 라운드·샷 입력, 타임라인, 오버레이 디자인, 프로젝트 저장 구현 |
+| MP4 내보내기 | 실제 FFmpeg H.264/AAC 렌더링·진행률·다운로드 및 공통 미리보기·출력 그래픽 구현 |
+| 코스 보관함 | 로컬 검색, 티·레이팅 구분 선택, 수동 입력, 허가된 CSV/JSON 가져오기 구현 |
+| iOS / Android | Expo 개발 클라이언트 준비, 타입 검사·양쪽 JavaScript 번들 검증 통과, 네이티브 빌드·실기기 검증 대기 |
+| USGA / 클라우드 | USGA 실시간 연동, 운영 인증·저장소, 스토어 게시 대기 |
+
+**검증:** 합성 영상·오디오 출력과 미리보기 패널 비교를 포함한 백엔드 테스트 21개를 통과했습니다. 브라우저에서 업로드·샷 오버레이·자동 저장·실제 MP4 출력 완료를 확인했습니다. [구현 상태](docs/STATUS.md)와 [설계 문서](docs/ARCHITECTURE.md)를 참고하세요.
 
 ## 실행
 
 Python 3.13 이상, [uv](https://docs.astral.sh/uv/), PATH에 등록된 **ffprobe·libx264 포함 FFmpeg**가 필요합니다.
 
 ```bash
-cd /Users/slee1005/Documents/UNMIT/scorecard
+git clone https://github.com/slee1005/scorecard.git
+cd scorecard
 uv sync --locked
 uv run golf-video-studio
 ```

@@ -2,14 +2,29 @@
 
 # Golf Video Studio
 
-A functional local golf-video editor for timed shot graphics and editable 18-hole scorecards. The dark workspace takes its visual direction from the supplied golf-course reference. This is a separate project; the existing ShotTracer app and its projects are untouched.
+A local golf-video editor for timed shot graphics, editable 18-hole scorecards and permanent MP4 overlays. Video processing and project storage run on your own device. The web editor and Expo mobile development client share one FastAPI backend and scoring model.
+
+![Golf Video Studio editor](docs/images/studio.jpg)
+
+## Current status
+
+| Component | Status |
+| --- | --- |
+| Desktop web editor | Video import/playback, round and shot editing, timeline, overlay design and saved projects implemented |
+| MP4 export | Real FFmpeg H.264/AAC rendering, progress and download; shared preview/export graphics |
+| Course library | Local search, tee/category selection, manual entry and authorized CSV/JSON imports |
+| iOS / Android | Expo development client prepared; TypeScript checks and both JavaScript bundles passed; native builds and device validation pending |
+| USGA / cloud | Live USGA integration, hosted authentication/storage and store publication pending |
+
+**Validation:** 21 backend tests passed, including synthetic video/audio export and preview-panel comparison. Browser checks covered upload, shot overlays, autosave and completed MP4 export. See [implementation status](docs/STATUS.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run
 
 Requires Python 3.13+, [uv](https://docs.astral.sh/uv/) and FFmpeg **with ffprobe and libx264** on PATH.
 
 ```bash
-cd /Users/slee1005/Documents/UNMIT/scorecard
+git clone https://github.com/slee1005/scorecard.git
+cd scorecard
 uv sync --locked
 uv run golf-video-studio
 ```
